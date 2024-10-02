@@ -4,7 +4,38 @@ import "../index.css";
 import coin from "../assets/images/coins.png";
 import Container from '@mui/material/Container'
 import BackgroundPoint from '../assets/images/fruit.png';
+import { useState, useEffect } from "react";
+
 function History_point() {
+  // const [shops, setShops] = useState([]);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
+  // // const { id } = useParams();
+
+  // const API_URL = import.meta.env.VITE_API_URL;
+  // // const token = localStorage.getItem('accessToken');
+  // const token = import.meta.env.VITE_TOKEN_TEST ;
+
+  // console.log("token in home: ", token);
+  // useEffect(() => {
+  //   const fetchShops = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const shopData = await getAllShops(token);
+  //       setShops(shopData);
+  //       setLoading(false);
+  //     } catch (error) {
+  //       console.error('Error fetching shops:', error);
+  //       setError(error.message);
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchShops();
+  // }, [token]);
+
+  // if (loading) return <p>Loading...</p>;
+  // if (error) return <p>Error: {error}</p>;
+
   return (
     <>
       <Header />
@@ -31,9 +62,9 @@ function History_point() {
             </div>
             <p className="mt-10 ml-3">วันอังคารที่ 6 เดือน สิงหาคม 2567 เวลา 18:50 น.</p>
         </div>
-        
+
       </Container>
-      
+
     </>
   );
 }

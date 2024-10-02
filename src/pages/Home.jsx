@@ -1,8 +1,8 @@
-import Header from "../components/Header.jsx";
 import "../index.css";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { getAllShops } from "../api/strapi/shopApi";
 import { useState, useEffect } from "react";
+import Header from '../components/Header';
 // import Login from "./Login.jsx";
 // import { ChooseShop } from "./ChooseShop.jsx";
 // import { ShopDetails } from "./ShopDetails.jsx";
@@ -14,9 +14,10 @@ function Home() {
   const [error, setError] = useState(null);
   // const { id } = useParams();
 
-  const token = import.meta.env.VITE_TOKEN_TEST ;
   const API_URL = import.meta.env.VITE_API_URL;
   // const token = localStorage.getItem('accessToken');
+  const token = import.meta.env.VITE_TOKEN_TEST ;
+
   console.log("token in home: ", token);
   useEffect(() => {
     const fetchShops = async () => {

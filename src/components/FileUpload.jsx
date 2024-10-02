@@ -1,38 +1,34 @@
 import "./style.css";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { FaPencilAlt } from "react-icons/fa";
-function FileUpload() {
+
+const FileUpload = ({ photoImage, onFileChange }) => {
   const initialImageUrl =
     "https://cdn.pixabay.com/photo/2019/08/11/18/59/icon-4399701_1280.png"; // Replace with your actual initial image URL
 
-  const [backgroundImage, setBackgroundImage] = useState(initialImageUrl);
-  const [username, setUsername] = useState([]);
+  const [backgroundImage, setBackgroundImage] = useState(photoImage || initialImageUrl); // Use initialImageUrl or passed photoImage
   const fileInputRef = useRef(null);
 
+  // Open file input dialog when the icon is clicked
   const handleIconClick = () => {
     fileInputRef.current.click();
   };
 
+  // Handle file selection
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setBackgroundImage(e.target.result);
+        setBackgroundImage(e.target.result); // Set preview of the image
       };
       reader.readAsDataURL(file);
+
+      // Send the file back to the parent component
+      onFileChange(file); // Pass the file to the parent to handle uploading
     }
   };
-  useEffect(() =>{
-    // fetch("http://localhost:1337/api/users")
-    // .then(res => res.json())
-    // .then(
-    //   (result) => {
-    //    setUsername(result)
-    //   },
-     
-    // )
-  });
+
   return (
     <>
       <div className="container mx-auto px-4 py-9 lg:py-20">
@@ -45,7 +41,7 @@ function FileUpload() {
               borderRadius: "50%",
               backgroundSize: "cover",
               backgroundPosition: "center",
-              backgroundImage: `url(${backgroundImage})`,
+              backgroundImage: `url(${backgroundImage})`, // Fallback to default image if no image is found
               position: "relative", // Position relative to position the icon inside
               border: "1px solid #ccc", // Optional: Add a border for better visibility
             }}
@@ -66,13 +62,13 @@ function FileUpload() {
               ref={fileInputRef}
               style={{ display: "none" }}
               onChange={handleFileChange}
-              accept="image/*"
+              accept="image/*" // Accept only image files
             />
           </div>
-      </div>
+        </div>
       </div>
     </>
   );
-}
+};
 
 export default FileUpload;

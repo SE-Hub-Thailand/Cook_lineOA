@@ -1,24 +1,41 @@
 import Header from "../components/Header";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/images/Group.png";
 import "../components/style.css";
 import { BsBasket2 } from "react-icons/bs";
 import { BsCoin } from "react-icons/bs";
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { getAllProductsByShopId } from "../api/strapi/productApi";
+import { CartContext } from '../components/CartContext';
 
 export default function ChooseShop() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { id } = useParams(); // Get shopId from URL params
-  const [counts, setCounts] = useState({}); // Use an object to keep track of product counts
-  const token = import.meta.env.VITE_TOKEN_TEST ;
+  const { id } = useParams();
+  // const [counts, setCounts] = useState(() => {
+  //   const storedCounts = localStorage.getItem('cart');
+  //   return storedCounts ? JSON.parse(storedCounts) : {};
+  // });
+  const [counts, setCounts] = useState(() => {
+    const isRefreshed = true; // ใช้เงื่อนไขนี้สำหรับการเช็คว่ามีการรีเฟรชหรือไม่
+    if (isRefreshed) {
+      // รีเซ็ตค่า counts เป็น 0 หรือ object ว่างเปล่า
+      localStorage.removeItem('cart');
+      return {};
+    } else {
+      // ดึงค่าจาก localStorage ถ้ามีการบันทึกไว้
+      const storedCounts = localStorage.getItem('cart');
+      return storedCounts ? JSON.parse(storedCounts) : {};
+    }
+  });
+  const token = import.meta.env.VITE_TOKEN_TEST;
   const API_URL = import.meta.env.VITE_API_URL;
-  // const token = localStorage.getItem('accessToken');
+  const navigate = useNavigate();
+  const { addToCart, removeFromCart } = useContext(CartContext); // Access addToCart and removeFromCart
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -27,6 +44,11 @@ export default function ChooseShop() {
         const ProductData = await getAllProductsByShopId(token, id);
         setProducts(ProductData);
         setLoading(false);
+
+        if (ProductData.length === 0) {
+          alert("No product for this shop");
+          navigate("/home");
+        }
       } catch (error) {
         console.error('Error fetching products:', error);
         setError(error.message);
@@ -35,109 +57,67 @@ export default function ChooseShop() {
     };
 
     fetchProducts();
-  }, [id, token]);
+  }, [id, token, navigate]);
 
-  const handleIncrement = (productId) => {
-    setCounts((prevCounts) => ({
-      ...prevCounts,
-      [productId]: (prevCounts[productId] || 0) + 1,
-    }));
+  const updateCart = (productId, quantity) => {
+    console.log("productId: ", productId, "quantity: ", quantity);
+    console.log("counts in update: ", counts);
+    const updatedCounts = { ...counts, [productId]: (counts[productId] || 0) + quantity };
+    setCounts(updatedCounts);
+    localStorage.setItem('cart', JSON.stringify(updatedCounts));
+    console.log("updatedCounts in update: ", updatedCounts);
+  };
+  // const handleIncrement = (product) => {
+  //   // Use only updateCart to manage the count, no need to call addToCart if it also updates
+  //   updateCart(product.id, 1);
+  // };
+
+  // const handleDecrement = (productId) => {
+  //   if (counts[productId] > 0) {
+  //     // Use only updateCart to manage the count, no need to call removeFromCart if it also updates
+  //     updateCart(productId, -1);
+  //   }
+  // };
+  const handleIncrement = (product) => {
+  console.log("In CountsById[", product.id, "] : ", product);
+    addToCart(product);
+    updateCart(product.id, 1);
   };
 
   const handleDecrement = (productId) => {
-    setCounts((prevCounts) => ({
-      ...prevCounts,
-      [productId]: prevCounts[productId] > 0 ? prevCounts[productId] - 1 : 0,
-    }));
+  console.log("De CountsById[", productId, "] : ", counts[productId]);
+    if (counts[productId] > 0) {
+      removeFromCart(productId);
+      updateCart(productId, -1);
+    }
   };
-
-  const [clicked, setClicked] = useState(false);
-
-  const handleClick = () => {
-    setClicked((prevState) => !prevState);
-  };
-
+  // console.log("CountsById[", product.id, "] : ", counts[products.id]);
+  console.log("products: ", products);
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
   return (
     <>
-      <nav className="flex items-center justify-between p-5 pr-20 bg-white">
-        <NavLink to="/">
-          <img src={logo} alt="Logo" width={50} />
-        </NavLink>
-        <NavLink to="/conclusion">
-        <BsBasket2 className="w-10 h-10 text-green-700 ml-10 relative top-4" />
-        {counts >= 0 && (
-            <span className="relative number-basket  inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 rounded-full">
-              {counts}
-            </span>
-          )}
-        </NavLink>
-        <div className="flex flex-col">
-          <BsCoin  className="w-7 h-7 text-yellow-hard ml-8 " />
-          <p className="ml-6 mt-2"><strong>32000</strong></p>
-        </div>
-
-        <div>
-          <ul id="navbar" className={clicked ? "#navbar open" : "#navbar"}>
-            <li>
-              <NavLink
-                className="font-semibold hover:text-yellow-hard"
-                to="/UserProfile"
-                style={({ isActive }) => {
-                  return { color: isActive ? "yellow-hard" : "" };
-                }}
-              >
-                ข้อมูลส่วนตัว/ลงทะเบียน
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                className="font-semibold hover:text-yellow-hard"
-                to="/history-point"
-                style={({ isActive }) => {
-                  return { color: isActive ? "yellow-hard" : "" };
-                }}
-              >
-                คะแนนสะสมและประวัติการแลกแต้ม
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                className="font-semibold hover:text-yellow-hard"
-                to="/history-service-machine"
-                style={({ isActive }) => {
-                  return { color: isActive ? "yellow-hard" : "" };
-                }}
-              >
-                ประวัติการใช้บริการตู้
-              </NavLink>
-            </li>
-          </ul>
-        </div>
-        <div id="mobile" onClick={handleClick}>
-          <i id="bar" className={clicked ? "fas fa-times" : "fas fa-bars"}></i>
-        </div>
-      </nav>
+      <Header />
+      {/* <Header counts={counts} products={products}/> */}
       <Container maxWidth="sm">
-      <p className="text-3xl text-center pt-10">{products[id].shop.name}</p>
+        {products.length > 0 && <p className="text-3xl text-center pt-10">{products[0]?.shop?.name}</p>}
         {products.map(product => (
           <div key={product.id}>
             <div className="w-full h-60 bg-white mt-10 rounded-s-md">
-              <div className="flex justify-center ">
+              <div className="flex justify-center">
                 <span
                   className="circle"
                   style={{
                     backgroundImage: product.image?.data?.attributes?.url
                       ? `url(${API_URL}${product.image.data.attributes.url})`
-                      : 'url(https://cdn.britannica.com/70/234870-050-D4D024BB/Orange-colored-cat-yawns-displaying-teeth.jpg)', // fallback to default image if no image found
+                      : 'url(https://cdn.britannica.com/70/234870-050-D4D024BB/Orange-colored-cat-yawns-displaying-teeth.jpg)',
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                    width: "100%", // Set width to 100% to make it responsive
-                    maxWidth: "150px", // Limit the max width
-                    height: "150px", // Set height for larger image
-                    borderRadius: "50%", // Circle shape
+                    width: "100%",
+                    maxWidth: "150px",
+                    height: "150px",
+                    borderRadius: "50%",
                   }}
                 ></span>
               </div>
@@ -156,7 +136,7 @@ export default function ChooseShop() {
                 <button
                   className="basis-1/4 bg-green-hard-bg text-white font-bold text-3xl pb-3 rounded-br-md width-button-inandde"
                   style={{ height: '2.9rem' }}
-                  onClick={() => handleIncrement(product.id)}>
+                  onClick={() => handleIncrement(product)}>
                   +
                 </button>
               </div>

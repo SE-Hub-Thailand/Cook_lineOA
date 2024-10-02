@@ -1,27 +1,84 @@
 import { NavLink } from "react-router-dom";
 import logo from "../assets/images/Group.png";
 import "./style.css";
-import { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { BsBasket2 } from "react-icons/bs";
 import { BsCoin } from "react-icons/bs";
+import { getUser } from "../api/strapi/userApi"; // Import getUser function
+import { CartContext } from "./CartContext"; // Import CartContext for cart items
+import { useNavigate } from 'react-router-dom';
 
 function Header() {
-  const [clicked, setClicked] = useState(false);
-  const [count, setCount] = useState(0);
+  // function Header() {
 
-  const handleIncrement = () => {
-    setCount(count + 1);
+  const storedCounts = localStorage.getItem('cart');
+  let totalItems = 0;
+
+  if (storedCounts) {
+    const counts = JSON.parse(storedCounts); // Parse the JSON string into an object
+    totalItems = Object.values(counts).reduce((acc, count) => acc + count, 0);
+  }
+
+  const userId = import.meta.env.VITE_USER_ID;
+  const token = import.meta.env.VITE_TOKEN_TEST;
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { cartItems } = useContext(CartContext); // Access cart items from CartContext
+  // console.log("cartItems in header: ", cartItems);
+  const [clicked, setClicked] = useState(false); // For mobile menu toggle
+  console.log("cartItems in header: ", cartItems);
+  const navigate = useNavigate();
+  const handleBasketClick = () => {
+    // Navigate to the CartSummary route
+    navigate('/cart', { state: { storedCounts, cartItems } });
   };
+  // Calculate total items in cart by summing the quantity in real-time
+  // const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
-  const handleDecrement = () => {
-    if (count > 0) {
-      setCount(count - 1);
-    }
-  };
 
+  // const [CartFromLocalStorage, setCartFromLocalStorage] = useState(() => {
+  //     const storedCounts = localStorage.getItem('cart');
+  //     return storedCounts ? JSON.parse(storedCounts) : {};
+  //   });
+  //   console.log("CartFromLocalStorage: ", CartFromLocalStorage);
+
+
+  // // Calculate total items in cart from localStorage
+  // const cartCount2 = getCartFromLocalStorage().reduce((acc, item) => acc + item.quantity, 0);
+  // console.log("cartCount2: ", cartCount2);
+  // Fetch user data when the component mounts
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const userData = await getUser(userId, token);
+        setUser(userData);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, [userId, token]);
+
+  // Fetch cart items and recalculate total items whenever cartItems changes
+  // useEffect(() => {
+  //   // You can add more logic here if you need to fetch the cart items
+  //   // console.log("Updated cart items:", cartItems);
+  //   // console.log("Total items in cart:", cartItems[0].quantity);
+  // }, [cartItems]); // This ensures the cart count is updated when `cartItems` changes
+
+  // Handle mobile menu toggle
   const handleClick = () => {
     setClicked((prevState) => !prevState);
   };
+
+  // Loading and Error handling
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <>
@@ -31,29 +88,30 @@ function Header() {
         </NavLink>
 
         {/* Basket Icon and Count */}
-        <div className="flex items-center relative">
-          <BsBasket2 className="w-10 h-10 text-green-700 ml-10" />
-          {count > 0 && (
-            <span className="basket-order absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {count}
-            </span>
-          )}
-        </div>
+          <div className="flex items-center relative">
+            <BsBasket2 className="w-10 h-10 text-green-700 ml-10" onClick={handleBasketClick}/>
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
+          </div>
+
 
         {/* Coin Icon and Balance */}
         <div className="flex flex-col items-center">
           <BsCoin className="w-7 h-7 text-yellow-hard ml-8" />
           <p className="ml-6 mt-2">
-            <strong>32000</strong>
+            <strong>{user?.point ?? 0}</strong>
           </p>
         </div>
 
         <div>
-          <ul id="navbar" className={clicked ? "#navbar open" : "#navbar"}>
+          <ul id="navbar" className={clicked ? "navbar open" : "navbar"}>
             <li>
               <NavLink
                 className="font-semibold hover:text-yellow-hard"
-                to="/UserProfile"
+                to="/update-user-profile"
                 style={({ isActive }) => {
                   return { color: isActive ? "yellow-hard" : "" };
                 }}
@@ -64,7 +122,7 @@ function Header() {
             <li>
               <NavLink
                 className="font-semibold hover:text-yellow-hard"
-                to="/history-point"
+                to={`/history-point/${user?.id}`}
                 style={({ isActive }) => {
                   return { color: isActive ? "yellow-hard" : "" };
                 }}
@@ -75,7 +133,7 @@ function Header() {
             <li>
               <NavLink
                 className="font-semibold hover:text-yellow-hard"
-                to="/history-service-machine"
+                to={`/history-service-machine/${user?.id}`}
                 style={({ isActive }) => {
                   return { color: isActive ? "yellow-hard" : "" };
                 }}

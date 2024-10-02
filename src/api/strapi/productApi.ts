@@ -28,6 +28,7 @@ export const getAllProductsByShopId = async (token: string, shopId: number): Pro
             name: item.attributes.name,
             description: item.attributes.description,
             price: item.attributes.price,
+            point: item.attributes.point,
             approved: item.attributes.approved,
             createdAt: item.attributes.createdAt,
             updatedAt: item.attributes.updatedAt,

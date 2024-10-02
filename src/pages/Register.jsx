@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect} from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header.jsx";
 import FileUpload from "../components/FileUpload.jsx";
 import { Checkbox, TextField } from "@mui/material";
@@ -9,35 +10,43 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import WebcamCapture from "../components/WebcamCapture.jsx";
-import { registerUserWithImage } from "../api/business/register"; // Import the function
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
+import { createUser } from "../api/strapi/userApi"; // Import createUser function
+import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
 
 function Register() {
+  const token = import.meta.env.VITE_TOKEN_TEST;
   const { userId } = useParams();
-  const navigate = useNavigate();
-  console.log('userId:', userId);
   const theme = createTheme({
     typography: {
       fontFamily: "Sarabun",
     },
   });
 
+  // Initial formData state is set with empty fields
   const [formData, setFormData] = useState({
     username: "",
-    lineId: userId,
+    password: "",
     fullName: "",
     telNumber: "",
     gender: "",
     address: "",
     cardID: "",
-    photoImage: "", // This will store the base64 image or image path
-    photoCardId: "",
+    photoImage: "",
     checkedOne: false,
   });
 
+  const navigate = useNavigate(); // Initialize useNavigate for redirection
   const [isFormValid, setIsFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Function to handle file change from FileUpload component
+  const handleFileChange = (file) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      photoImage: file, // Store the file in formData
+    }));
+  };
 
   const handleInputChange = (e) => {
     const { id, name, value, type, checked } = e.target;
@@ -47,64 +56,105 @@ function Register() {
     }));
   };
 
-  const handleImageCapture = (imageData) => {
-    // imageData will be base64 image data from WebcamCapture component
-    setFormData((prevData) => ({
-      ...prevData,
-      photoImage: imageData,
-    }));
-  };
-
   useEffect(() => {
-    const { username, fullName, telNumber, gender, address, cardID, checkedOne } = formData;
-    if (username && fullName && telNumber && gender && address && cardID && checkedOne) {
-      setIsFormValid(true);
-    } else {
-      setIsFormValid(false);
-    }
+    const {
+      username,
+      fullName,
+      telNumber,
+      gender,
+      address,
+      cardID,
+      checkedOne,
+    } = formData;
+
+    setIsFormValid(
+      username &&
+        fullName &&
+        telNumber &&
+        gender &&
+        address &&
+        cardID &&
+        checkedOne
+    );
   }, [formData]);
+
+  const createPhotoImageObject = (uploadedImageData) => {
+    return {
+      id: uploadedImageData.id,
+      name: uploadedImageData.name,
+      alternativeText: uploadedImageData.alternativeText || null,
+      caption: uploadedImageData.caption || null,
+      width: uploadedImageData.width,
+      height: uploadedImageData.height,
+      formats: uploadedImageData.formats, // If formats are available
+      hash: uploadedImageData.hash,
+      ext: uploadedImageData.ext,
+      mime: uploadedImageData.mime,
+      size: uploadedImageData.size,
+      url: uploadedImageData.url,
+      provider: uploadedImageData.provider,
+      createdAt: uploadedImageData.createdAt,
+      updatedAt: uploadedImageData.updatedAt,
+    };
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    let uploadedImageObject = null;
 
-    if (!isFormValid) return;
-
-    setLoading(true);
-    try {
-		if (!formData.photoImage) {
-			formData.photoImage = "0.jpg"; // Placeholder image
-		}
-		console.log('formData:', formData);
-    console.log('formData.lineId: ', formData.lineId);
-      // Calling the backend API to register the user
-      const response = await registerUserWithImage(
-        formData.username,
-		    formData.lineId,
-        formData.fullName,
-        formData.telNumber,
-        formData.gender,
-        formData.address,
-        formData.cardID,
-        formData.photoImage,// Send the base64 image data
-		    formData.photoCardId
-      );
-      console.log('User registered successfully:', response);
-      navigate('/'); // Redirect to the App component
-      // Handle success (e.g., show a success message or navigate to a different page)
-    } catch (error) {
-      console.error('Error during registration:', error.message);
-      // Handle error (e.g., show an error message)
-    } finally {
-      setLoading(false);
+    // อัปโหลดรูปภาพก่อน ถ้ามีรูปภาพที่จะอัปโหลด
+    if (formData.photoImage) {
+      const uploadedImageData = await uploadImage(formData.photoImage);
+      uploadedImageObject = createPhotoImageObject(uploadedImageData); // สร้าง object สำหรับ photoImage
+    }
+    const userData = {
+      username: formData.username || "cook" + userId ,
+      email: "cook" + userId + "@cook.com", // Assuming email is the same as username in this example
+      password: "cookcook",
+      lineId: userId,
+      userType: "customer",
+      photoImage: uploadedImageObject ? uploadedImageObject : null,
+      // photoImage: uploadedImageObject, // Add the uploaded image URL if it exists
+      fullName: formData.fullName,
+      telNumber: formData.telNumber,
+      gender: formData.gender,
+      address: formData.address,
+      cardID: formData.cardID,
+    };
+    console.log("userData before: ", userData);
+    console.log("token before: ", token);
+    // Call the createUser function to send the formData to the API
+    // Call the createUser function to send the formData to the API
+    const response = await createUser(userData, token);
+    console.log("response: ", response);
+    if (response) {
+      // Assuming that the API response contains an "id" field if registration was successful
+      alert("User registered successfully!");
+      navigate("/home"); // Redirect to home after successful registration
+    } else {
+      throw new Error('User registration failed.');
     }
   };
 
+  const handleImageCapture = (imageSrc) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      photoImage: imageSrc,
+    }));
+  };
+
+  if (loading) return <p>Loading...</p>; // Loading state
+  if (error) return <p>Error: {error}</p>; // Error state
+
   return (
     <ThemeProvider theme={theme}>
-      <FileUpload />
+      <Header />
+      <FileUpload
+        photoImage={formData.photoImage} // Pass the selected photo to FileUpload component
+        onFileChange={handleFileChange} // Pass handleFileChange function
+      />
       <form onSubmit={handleSubmit}>
         <div className="container mx-auto px-4 py-8">
-          {/* Input fields */}
           <div className="flex flex-wrap -mx-2">
             <div className="w-full md:w-1/2 px-2">
               <TextField
@@ -148,14 +198,23 @@ function Register() {
                   value={formData.gender}
                   onChange={handleInputChange}
                 >
-                  <FormControlLabel value="ชาย" control={<Radio />} label="ชาย" />
-                  <FormControlLabel value="หญิง" control={<Radio />} label="หญิง" />
+                  <FormControlLabel
+                    value="Male"
+                    control={<Radio />}
+                    label="ชาย"
+                  />
+                  <FormControlLabel
+                    value="Female"
+                    control={<Radio />}
+                    label="หญิง"
+                  />
                 </RadioGroup>
               </FormControl>
             </div>
             <div className="w-full px-2 mt-4">
               <TextField
                 id="address"
+                label="ที่อยู่"
                 placeholder="ที่อยู่"
                 multiline
                 rows={4}
@@ -189,17 +248,24 @@ function Register() {
             required
             sx={{ "& .MuiSvgIcon-root": { fontSize: 30 } }}
           />
-          <span>ยอมรับข้อตกลงและเงื่อนไข</span>
+          <span>
+            <strong>กุ๊ก</strong>ให้ความสำคัญเกี่ยวกับความปลอดภัยข้อมูลของคุณ{" "}
+            <span className="text-left leading-loose">
+              และเพื่อให้คุณมั่นใจว่า
+              กุ๊กมีความมุ่งมั่นที่จะให้ความคุ้มครองและดำเนินการด้วยความรับผิดชอบต่อการเก็บรวบรวม
+              ใช้ เปิดเผย และโอนข้อมูลของคุณ กุ๊กจึงขอความยินยอมจากคุณ
+            </span>
+          </span>
         </div>
         <div className="container mx-auto px-4">
           <button
             type="submit"
-            disabled={!isFormValid || loading}
+            disabled={!isFormValid}
             className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white ${
               isFormValid ? "bg-green-500" : "bg-slate-300"
             }`}
           >
-            {loading ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+            ลงทะเบียน
           </button>
         </div>
       </form>

@@ -26,88 +26,97 @@ export const updateUser = async (userId: number, userData: Record<string, any>, 
         throw error;
     }
 };
-export const getUser = async (userId: string, token: string): Promise<User[]> => {
+
+export const getUser = async (userId: string, token: string): Promise<User> => {
     if (!userId || !token) {
-        throw new Error('No token provided. User must be authenticated.');
+        throw new Error('No userId or token provided. User must be authenticated.');
     }
+
     try {
-        const url = `${API_URL}/api/users/${userId}`;  // Adjust the endpoint as per your API structure
+        // Use query parameters to filter by lineId if necessary
+        const lowerCaseUserId = userId.toLowerCase(); // แปลง userId เป็นตัวพิมพ์เล็ก
+        console.log('lowerCaseUserId', lowerCaseUserId);
+        const url = `${API_URL}/api/users?populate[photoImage]=true&filters[lineId][$eq]=${lowerCaseUserId}`;
+        // const url = `${API_URL}/api/users`;
+
 
         const response = await fetch(url, {
-            method: 'GET',  // Use 'GET' to retrieve user details
+            method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,  // Include the JWT token in the Authorization header
+                'Content-Type': 'application/json',
             },
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('Error:', errorData);
-            throw new Error(`Request failed with status ${response.status}`);
+            console.error('Error fetching user:', errorData);
+            throw new Error(`Request failed with status ${response.status}: ${errorData?.error?.message || 'Unknown error'}`);
+        }
+        const data = await response.json();
+        console.log('data', data); // Log to inspect the structure of the response
+
+        // Check if data.data exists and is an array
+        if (!data || !Array.isArray(data)) {
+            throw new Error('Invalid response format: Expected an array of user data.');
         }
 
-        const data = await response.json();
-        const users: User[] = data.data.map((item: any) => ({
-            id: item.id,
-            username: item.attributes.username,
-            email: item.attributes.email,
-            fullName: item.attributes.fullName,
-            gender: item.attributes.gender,
-            address: item.attributes.address,
-            cardID: item.attributes.cardID,
-            telNumber: item.attributes.telNumber,
-            userType: item.attributes.userType,
-            point: item.attributes.point,
-        }));
-        return users;
-    } catch (error) {
-        console.error('Error:', error.message);
+        // // If data.data is an empty array
+        console.log('data.data.length', data.length); // Log the data to check if it's an array
+        console.log('data[0].attributes.username', data[0].username); // Log the first item in the array to check the structure
+        if (data.length === 0) {
+            throw new Error('No user found with the provided lineId.');
+        }
+        // Map over the data to create an array of User objects
+        const user ={
+            id: data[0].id,
+            username: data[0].username,
+            email: data[0].email,
+            fullName: data[0].fullName,
+            lineId: data[0].lineId,
+            gender: data[0].gender,
+            address: data[0].address,
+            cardID: data[0].cardID,
+            telNumber: data[0].telNumber,
+            userType: data[0].userType,
+            point: data[0].point,
+            photoImage: data[0].photoImage,
+        };
+
+        console.log('users', user); // Log users to check if the mapping worked correctly
+        return user;
+
+    } catch (error: any) {
+        console.error('Error fetching user:', error.message);
         throw error;
     }
 };
 
-// export const getAllShops = async (token: string): Promise<Shop[]> => {
-//     if (!token) {
-//         throw new Error('No token provided. User must be authenticated.');
-//     }
-//     try {
-//         // const API_URL = 'https://cookbstaging.careervio.com'
-//         // /api/shops/?populate=image
-//         const url = `${API_URL}/api/shops/?populate=image`;
-//         // console.log('url', url);
-//         const response = await fetch(url, {
-//             method: 'GET',
-//             headers: {
-//                 Authorization: `Bearer ${token}`,
-//                 'Content-Type': 'application/json',
-//             },
-//         });
+export const createUser = async (userData: Record<string, any>, token: string): Promise<User> => {
+    try {
+        console.log('userData in createUser: ', userData);
+        const url = `${API_URL}/api/auth/local/register`;  // Adjust the endpoint as per your API structure
 
-//         if (!response.ok) {
-//             const errorData = await response.json();
-//             console.error('Error fetching shops:', errorData);
-//             throw new Error(`Request failed with status ${response.status}`);
-//         }
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,  // Include the JWT token in the Authorization header
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData),
+        });
+        console.log('body: ', JSON.stringify(userData));
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error:', errorData);
+            alert('Error: ' + errorData.error.message);
+            throw new Error(`Request failed with status ${response.status}`);
+        }
 
-//         const data = await response.json();
-//         console.log('data', data);
-//         // Map the response data to an array of Shop objects
-//         const shops: Shop[] = data.data.map((item: any) => ({
-//             id: item.id,
-//             name: item.attributes.name,
-//             location: item.attributes.location,
-//             latitude: item.attributes.latitude,
-//             longitude: item.attributes.longitude,
-//             createdAt: item.attributes.createdAt,
-//             updatedAt: item.attributes.updatedAt,
-//             publishedAt: item.attributes.publishedAt,
-//             bookBankNumber: item.attributes.bookBankNumber,
-//             image: item.attributes.image,
-//         }));
-//         console.log('shops', shops);
-//         return shops;
-//     } catch (error) {
-//         console.error('Error fetching shops:', error.message);
-//         throw error;
-//     }
-// };
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error:', error.message);
+        throw error;
+    }
+}

@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { LiffProvider } from 'react-liff';
+import { CartProvider } from './components/CartContext';
 import App from './App.jsx'
 import './index.css'
 import { createBrowserRouter, RouterProvider} from 'react-router-dom';
@@ -35,6 +36,8 @@ import LoginRegister from './pages/LoginRegister.jsx';
 import Login from './pages/Login.jsx';
 import ShopList from './pages/ShopList.jsx';
 import Map from './pages/Map.jsx';
+import UpdateUserProfile from './pages/UpdateUserProfile.jsx';
+import CartSummary from './pages/CartSummary.jsx';
 
 const liffId = import.meta.env.VITE_LIFF_ID ;
 const router = createBrowserRouter([
@@ -45,6 +48,11 @@ const router = createBrowserRouter([
   {
     path: "/home",
     element: <Home />
+  },
+  {
+    path: "/cart",
+    element: <CartSummary />
+
   },
   {
     path: "/register/:userId",
@@ -71,16 +79,24 @@ const router = createBrowserRouter([
     element: <ChooseShop />
   },
   {
-    path: "/history-point",
+    path: "/history-point/:id",
     element: <HistoryPoint />
   },
   {
-    path: "/history-service-machine",
+    path: "/history-service-machine/:id",
     element: <HistoryServiceMachine />
   },
   {
     path: "/UserProfile",
     element: <UserProfile />
+  },
+  {
+    path: "/register/:userId",
+    element: <Register />
+  },
+  {
+    path: "/update-user-profile",
+    element: <UpdateUserProfile />
   },
   {
     path: "/store-map/khunnaiwimon",
@@ -147,7 +163,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <LiffProvider liffId={liffId}>
-      <RouterProvider router={router} />
+      <CartProvider>
+        <RouterProvider router={router} />
+      </CartProvider>
     </LiffProvider>
   </StrictMode>,
 )
