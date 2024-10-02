@@ -18,8 +18,7 @@ function Header() {
     const counts = JSON.parse(storedCounts); // Parse the JSON string into an object
     totalItems = Object.values(counts).reduce((acc, count) => acc + count, 0);
   }
-
-  const userId = import.meta.env.VITE_USER_ID;
+  const userId = localStorage.getItem('auth_userId') || import.meta.env.VITE_USER_ID;
   const token = import.meta.env.VITE_TOKEN_TEST;
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);

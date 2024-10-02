@@ -15,8 +15,9 @@ import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage fun
 
 
 function UpdateUserProfile() {
-  const userId = import.meta.env.VITE_USER_ID;
+  const userId = localStorage.getItem('auth_userId') || import.meta.env.VITE_USER_ID;
   const token = import.meta.env.VITE_TOKEN_TEST;
+  // const token = localStorage.getItem('accessToken');
   const API_URL = import.meta.env.VITE_API_URL;
 
   const theme = createTheme({

@@ -15,8 +15,8 @@ function Home() {
   // const { id } = useParams();
 
   const API_URL = import.meta.env.VITE_API_URL;
-  // const token = localStorage.getItem('accessToken');
-  const token = import.meta.env.VITE_TOKEN_TEST ;
+  const token = localStorage.getItem('accessToken');
+  // const token = import.meta.env.VITE_TOKEN_TEST ;
 
   console.log("token in home: ", token);
   useEffect(() => {

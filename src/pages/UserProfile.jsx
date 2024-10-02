@@ -36,7 +36,7 @@ function UserProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const userId = import.meta.env.VITE_USER_ID;
+  const userId = localStorage.getItem('auth_userId') || import.meta.env.VITE_USER_ID;
   const token = import.meta.env.VITE_TOKEN_TEST;
 
   const handleInputChange = (e) => {
