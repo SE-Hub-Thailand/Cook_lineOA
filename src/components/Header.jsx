@@ -33,21 +33,7 @@ function Header() {
     // Navigate to the CartSummary route
     navigate('/cart', { state: { storedCounts, cartItems } });
   };
-  // Calculate total items in cart by summing the quantity in real-time
-  // const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
-
-  // const [CartFromLocalStorage, setCartFromLocalStorage] = useState(() => {
-  //     const storedCounts = localStorage.getItem('cart');
-  //     return storedCounts ? JSON.parse(storedCounts) : {};
-  //   });
-  //   console.log("CartFromLocalStorage: ", CartFromLocalStorage);
-
-
-  // // Calculate total items in cart from localStorage
-  // const cartCount2 = getCartFromLocalStorage().reduce((acc, item) => acc + item.quantity, 0);
-  // console.log("cartCount2: ", cartCount2);
-  // Fetch user data when the component mounts
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -63,13 +49,6 @@ function Header() {
     };
     fetchUser();
   }, [userId, token]);
-
-  // Fetch cart items and recalculate total items whenever cartItems changes
-  // useEffect(() => {
-  //   // You can add more logic here if you need to fetch the cart items
-  //   // console.log("Updated cart items:", cartItems);
-  //   // console.log("Total items in cart:", cartItems[0].quantity);
-  // }, [cartItems]); // This ensures the cart count is updated when `cartItems` changes
 
   // Handle mobile menu toggle
   const handleClick = () => {
@@ -99,12 +78,14 @@ function Header() {
 
 
         {/* Coin Icon and Balance */}
-        <div className="flex flex-col items-center">
-          <BsCoin className="w-7 h-7 text-yellow-hard ml-8" />
-          <p className="ml-6 mt-2">
-            <strong>{user?.point ?? 0}</strong>
-          </p>
-        </div>
+        <NavLink to={`/history-point/${user?.id}`} >
+          <div className="flex flex-col items-center">
+            <BsCoin className="w-7 h-7 text-yellow-hard ml-8" />
+            <p className="ml-6 mt-2">
+              <strong>{user?.point ?? 0}</strong>
+            </p>
+          </div>
+        </NavLink>
 
         <div>
           <ul id="navbar" className={clicked ? "navbar open" : "navbar"}>

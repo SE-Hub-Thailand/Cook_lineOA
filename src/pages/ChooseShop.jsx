@@ -142,7 +142,7 @@ export default function ChooseShop() {
               </div>
             </div>
             <p className="text-center text-2xl mt-10">{product.name}</p>
-            <p className="text-center text-2xl mt-3 pb-10">35 แต้ม</p>
+            <p className="text-center text-2xl mt-3 pb-10">{product.point || 0} แต้ม</p>
           </div>
         ))}
       </Container>

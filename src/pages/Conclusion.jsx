@@ -15,6 +15,7 @@ export default function Conclusion() {
       <Container maxWidth="sm">
         <div className="w-full height-bg bg-grey-bg mt-10 rounded-s-md">
           <p className="text-center pt-10 text-2xl">รายการที่เลือก</p>
+
           <div className="grid grid-cols-4 mt-10">
             <p className="relative left-14">1</p>
             <p>บรอคโคลี</p>
@@ -27,18 +28,21 @@ export default function Conclusion() {
             <p className="relative left-14">70</p>
             <p>แต้ม</p>
           </div>
+
           <div className="grid grid-cols-4 mt-10">
             <p className="relative left-14">2</p>
             <p>แตงกวา</p>
             <p className="relative left-14">2</p>
             <p>รายการ</p>
           </div>
+
           <div className="grid grid-cols-4 mt-10">
             <p className="relative left-14"></p>
             <p>ใช้แต้มไป</p>
             <p className="relative left-14">160</p>
             <p>แต้ม</p>
           </div>
+
           <div className="grid grid-cols-4 mt-10">
             <p className="relative left-14">รวมทั้งหมด</p>
             <p></p>
@@ -47,6 +51,7 @@ export default function Conclusion() {
           </div>
           <div className="h-10"></div>
         </div>
+        
         <p className="text-center pt-10 text-2xl">สร้าง QR Code</p>
         <div className="mt-10 flex justify-center">
           <div
