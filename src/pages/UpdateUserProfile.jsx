@@ -132,7 +132,6 @@ function UpdateUserProfile() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     try {
       let uploadedImageObject = null;
 

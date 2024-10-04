@@ -39,12 +39,69 @@ export const getAllShops = async (token: string): Promise<Shop[]> => {
             updatedAt: item.attributes.updatedAt,
             publishedAt: item.attributes.publishedAt,
             bookBankNumber: item.attributes.bookBankNumber,
-            image: item.attributes.image,
+            bookBankImage: item.attributes.image,
         }));
         console.log('shops', shops);
         return shops;
     } catch (error) {
         console.error('Error fetching shops:', error.message);
+        throw error;
+    }
+};
+
+export const getShopById = async (id: string, token: string): Promise<Shop> => {
+    if (!token) {
+        throw new Error('No token provided. User must be authenticated.');
+    }
+    if (!id) {
+        throw new Error('No shop ID provided.');
+    }
+
+    try {
+        // const url = `${API_URL}/api/shops/${id}?populate=image`;
+        const url = `${API_URL}/api/shops/${id}?populate[image]=true&populate[user]=true&populate[bank]=true`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error fetching shop:', errorData);
+            throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('data', data);
+        const shop: Shop = {
+            id: data.data.id,
+            name: data.data.attributes.name,
+            location: data.data.attributes.location,
+            latitude: data.data.attributes.latitude,
+            longitude: data.data.attributes.longitude,
+            createdAt: data.data.attributes.createdAt,
+            updatedAt: data.data.attributes.updatedAt,
+            publishedAt: data.data.attributes.publishedAt,
+            bookBankNumber: data.data.attributes.bookBankNumber,
+            bookBankImage: data.data.attributes.image,
+            user: {
+                id: data.data.attributes.user.data.id,
+                username: data.data.attributes.user.data.attributes.username,
+                email: data.data.attributes.user.data.attributes.email,
+                fullName: data.data.attributes.user.data.attributes.fullName,
+            },
+            bankName: data.data.attributes.bank.data.attributes.name,
+
+        };
+
+        console.log('shop', shop);
+        return shop;
+    } catch (error) {
+        console.error('Error fetching shop by ID:', error.message);
         throw error;
     }
 };

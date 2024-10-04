@@ -2,31 +2,50 @@
 
 import { N } from "vitest/dist/chunks/reporters.C_zwCd4j.js";
 
+export interface Image {
+    id: number;
+    url: string;
+    formats?: {
+      thumbnail?: { url: string };
+      small?: { url: string };
+      medium?: { url: string };
+      large?: { url: string };
+    };
+    alternativeText?: string;
+    caption?: string;
+  }
+
+  export interface Bank {
+    id: number;
+    name: string;
+  }
 export interface User {
     id: number;
     username: string;
     email: string;
-    fullName: number;
-    gender: number;
+    fullName: string;
+    gender: string;
     address: string;
-    cardIDv: string;
+    cardID: string;
+    photoImage: Image;
     telNumber: string;
-    point: Number;  // Assuming this is the ID of the uploaded image
+    point: number;
 }
 
 export interface Shop {
     id: number;
     name: string;
     location: string;
-    latitude: number;
-    longitude: number;
+    latitude: string;
+    longitude: string;
     createdAt: string;
     updatedAt: string;
     publishedAt: string;
     bookBankNumber: string | null;
-    image: number;  // Assuming this is the ID of the uploaded image
-    bookBankImage: number;  // Assuming this is the ID of the uploaded image
-    bankName: string;  // Bank relationship
+    // image: number;  // Assuming this is the ID of the uploaded image
+    bookBankImage: Image;  // Assuming this is the ID of the uploaded image
+    bankName: Bank;  // Bank relationship
+    user: User;
 }
 
 export interface Product {
@@ -38,16 +57,7 @@ export interface Product {
     createdAt: string;
     updatedAt: string;
     publishedAt: string;
-    shop: {
-        id: number;
-        name: string;
-        location: string;
-        latitude: number;
-        longitude: number;
-        createdAt: string;
-        updatedAt: string;
-        publishedAt: string;
-    };
+    shop: Shop;
 }
 
 export interface RecycleMachine {
