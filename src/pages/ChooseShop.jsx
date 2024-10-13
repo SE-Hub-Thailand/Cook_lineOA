@@ -10,12 +10,14 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState, useContext } from 'react';
 import { getAllProductsByShopId } from "../api/strapi/productApi";
 import { CartContext } from '../components/CartContext';
+import PointsModal from '../components/PointsModal';
 
 export default function ChooseShop() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
+  const [showModal, setShowModal] = useState(false);
   // const [counts, setCounts] = useState(() => {
   //   const storedCounts = localStorage.getItem('cart');
   //   return storedCounts ? JSON.parse(storedCounts) : {};
@@ -25,6 +27,10 @@ export default function ChooseShop() {
     if (isRefreshed) {
       // รีเซ็ตค่า counts เป็น 0 หรือ object ว่างเปล่า
       localStorage.removeItem('cart');
+      localStorage.removeItem('cart2');
+      localStorage.removeItem('point');
+
+
       return {};
     } else {
       // ดึงค่าจาก localStorage ถ้ามีการบันทึกไว้
@@ -32,7 +38,8 @@ export default function ChooseShop() {
       return storedCounts ? JSON.parse(storedCounts) : {};
     }
   });
-  const token = import.meta.env.VITE_TOKEN_TEST;
+  // const token = import.meta.env.VITE_TOKEN_TEST;
+  const token = localStorage.getItem('token');
   const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const { addToCart, removeFromCart } = useContext(CartContext); // Access addToCart and removeFromCart
@@ -59,25 +66,111 @@ export default function ChooseShop() {
     fetchProducts();
   }, [id, token, navigate]);
 
+  // console.log("products[19]: ", p.name);
+
   const updateCart = (productId, quantity) => {
+
+    const p = products.find(p => p.id === productId);
+    console.log("AllP: ", p);
+    console.log("add p[",productId, "]: ", p.name, " point: ", p.point, " numStock: ", p.numStock);
+
     console.log("productId: ", productId, "quantity: ", quantity);
     console.log("counts in update: ", counts);
     const updatedCounts = { ...counts, [productId]: (counts[productId] || 0) + quantity };
+    // Retrieve the current cart items from localStorage or an empty array if none exist
+    const storedCounts = JSON.parse(localStorage.getItem('cart2')) || [];
+
+    let totalPointsSum = 0;
+    let totalCountSum = 0;
+
+    storedCounts.forEach(item => {
+      const count = item.counts; // Assuming the counts field contains the quantity of the item
+      if (count > 0) {
+        const totalPoints = item.point * count; // Calculate total points for the item
+        totalPointsSum += totalPoints; // Add points to total sum
+        totalCountSum += count; // Add count to total count sum
+      }
+    });
+
+    if (totalPointsSum > 100) {
+      console.log("totalPointsSum Before: ", totalPointsSum);
+      // console.log("totalPointsSum แต็มไม่พอ: ", totalPointsSum + totalPoints);
+      // alert('แต้มไม่พอ'); // Alert if totalPointsSum exceeds 100
+      setShowModal(true);
+      // return;
+    }
+
+    // Check if totalPointsSum exceeds 100
+
+    // Check if the product already exists in the updatedCounts array
+    const existingProductIndex = storedCounts.findIndex(item => item.id === productId);
+
+    if (existingProductIndex !== -1) {
+      // If the product exists, update the counts
+      storedCounts[existingProductIndex].counts += quantity;
+    } else {
+      // If the product does not exist, push a new entry with all necessary data
+      storedCounts.push({
+        id: p.id,
+        name: p.name,
+        counts: quantity, // Initial count based on the update
+        point: p.point,
+        numStock: p.numStock,
+      });
+    }
+
+    // Update state with an array of products containing detailed information
+    setCounts(storedCounts); // Assuming 'counts' is an array of products
+
+    // Store the updated data in localStorage
+    localStorage.setItem('cart2', JSON.stringify(storedCounts));
+    console.log("storedCounts: ", JSON.stringify(storedCounts));
     setCounts(updatedCounts);
     localStorage.setItem('cart', JSON.stringify(updatedCounts));
-    console.log("updatedCounts in update: ", updatedCounts);
+    console.log("updatedCounts in update: ", JSON.stringify(updatedCounts));
+
   };
-  // const handleIncrement = (product) => {
-  //   // Use only updateCart to manage the count, no need to call addToCart if it also updates
-  //   updateCart(product.id, 1);
+  // const updateCart = (productId, quantity) => {
+  //   // Find the product in the products array
+  //   const p = products.find(p => p.id === productId);
+  //   if (!p) {
+  //     console.error(`Product with id ${productId} not found.`);
+  //     return;
+  //   }
+
+  //   console.log("AllP: ", p);
+  //   console.log("add p[", productId, "]: ", p.name, " point: ", p.point, " numStock: ", p.numStock);
+
+    // // Retrieve the current cart items from localStorage or an empty array if none exist
+    // const storedCounts = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // // Check if the product already exists in the updatedCounts array
+    // const existingProductIndex = storedCounts.findIndex(item => item.id === productId);
+
+    // if (existingProductIndex !== -1) {
+    //   // If the product exists, update the counts
+    //   storedCounts[existingProductIndex].counts += quantity;
+    // } else {
+    //   // If the product does not exist, push a new entry with all necessary data
+    //   storedCounts.push({
+    //     id: p.id,
+    //     name: p.name,
+    //     counts: quantity, // Initial count based on the update
+    //     point: p.point,
+    //     numStock: p.numStock,
+    //   });
+    // }
+
+    // // Update state with an array of products containing detailed information
+    // setCounts(storedCounts); // Assuming 'counts' is an array of products
+
+    // // Store the updated data in localStorage
+    // localStorage.setItem('cart', JSON.stringify(storedCounts));
+
+  //   console.log("updatedCounts in update: ", JSON.stringify(storedCounts));
   // };
 
-  // const handleDecrement = (productId) => {
-  //   if (counts[productId] > 0) {
-  //     // Use only updateCart to manage the count, no need to call removeFromCart if it also updates
-  //     updateCart(productId, -1);
-  //   }
-  // };
+
   const handleIncrement = (product) => {
   console.log("In CountsById[", product.id, "] : ", product);
     addToCart(product);
@@ -91,6 +184,11 @@ export default function ChooseShop() {
       updateCart(productId, -1);
     }
   };
+  const [searchTerm, setSearchTerm] = useState('');
+  // Filter products based on the search term
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   // console.log("CountsById[", product.id, "] : ", counts[products.id]);
   console.log("products: ", products);
   if (loading) return <p>Loading...</p>;
@@ -101,8 +199,22 @@ export default function ChooseShop() {
       <Header />
       {/* <Header counts={counts} products={products}/> */}
       <Container maxWidth="sm">
-        {products.length > 0 && <p className="text-3xl text-center pt-10">{products[0]?.shop?.name}</p>}
-        {products.map(product => (
+        {/* Search input field */}
+        <div className="flex justify-center pt-10">
+          <input
+            type="text"
+            className="border-2 border-gray-300 rounded-md p-2 w-full max-w-xs"
+            placeholder="Search product"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* Display the shop name if products are available */}
+        {filteredProducts.length > 0 && <p className="text-3xl text-center pt-10">{filteredProducts[0]?.shop?.name}</p>}
+
+        {/* Display filtered products */}
+        {filteredProducts.map(product => (
           <div key={product.id}>
             <div className="w-full h-60 bg-white mt-10 rounded-s-md">
               <div className="flex justify-center">
@@ -145,6 +257,10 @@ export default function ChooseShop() {
             <p className="text-center text-2xl mt-3 pb-10">{product.point || 0} แต้ม</p>
           </div>
         ))}
+
+        {/* Display a message if no products match the search term */}
+        {filteredProducts.length === 0 && <p className="text-center text-2xl mt-10">No products found</p>}
+        {showModal && <PointsModal closeModal={() => setShowModal(false)} />}
       </Container>
     </>
   );

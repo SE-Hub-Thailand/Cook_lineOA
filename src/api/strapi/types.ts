@@ -19,9 +19,18 @@ export interface Image {
     id: number;
     name: string;
   }
+
+  export interface Redeem {
+    totalPoints: number;
+    status: string;
+    customer: User;
+    qrCode: string;
+    productJsonArray: JSON;
+  }
 export interface User {
     id: number;
     username: string;
+    lineId: string;
     email: string;
     fullName: string;
     gender: string;

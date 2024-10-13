@@ -1,6 +1,6 @@
 import React, { useState, useEffect} from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Header from "../components/Header.jsx";
+// import Header from "../components/Header.jsx";
 import FileUpload from "../components/FileUpload.jsx";
 import { Checkbox, TextField } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -14,7 +14,13 @@ import { createUser } from "../api/strapi/userApi"; // Import createUser functio
 import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
 
 function Register() {
-  const token = import.meta.env.VITE_TOKEN_TEST;
+  // const token = import.meta.env.VITE_TOKEN_TEST;
+  // const token = localStorage.getItem('token');
+  const displayName = localStorage.getItem('displayName');
+  const pictureUrl = localStorage.getItem('pictureUrl');
+  console.log("displayName in Register: ", displayName);
+  console.log("pictureUrl in Register: ", pictureUrl);
+  // console.log("token in Register: ", token);
   const { userId } = useParams();
   const theme = createTheme({
     typography: {
@@ -24,7 +30,7 @@ function Register() {
 
   // Initial formData state is set with empty fields
   const [formData, setFormData] = useState({
-    username: "",
+    username: displayName,
     password: "",
     fullName: "",
     telNumber: "",
@@ -67,6 +73,13 @@ function Register() {
       checkedOne,
     } = formData;
 
+    // setFormData({
+    //   username: displayName,
+    //   photoImage: pictureUrl,
+    // //   photoImage: userData.photoImage || "", // Assuming the image is not fetched here
+    //   checkedOne: false, // Assume consent is not automatically checked
+    // });
+
     setIsFormValid(
       username &&
         fullName &&
@@ -104,6 +117,7 @@ function Register() {
 
     // อัปโหลดรูปภาพก่อน ถ้ามีรูปภาพที่จะอัปโหลด
     if (formData.photoImage) {
+      console.log("formData.photoImage: ", formData.photoImage);
       const uploadedImageData = await uploadImage(formData.photoImage);
       uploadedImageObject = createPhotoImageObject(uploadedImageData); // สร้าง object สำหรับ photoImage
     }
@@ -122,12 +136,17 @@ function Register() {
       cardID: formData.cardID,
     };
     console.log("userData before: ", userData);
-    console.log("token before: ", token);
+    // console.log("token before: ", token);
     // Call the createUser function to send the formData to the API
     // Call the createUser function to send the formData to the API
-    const response = await createUser(userData, token);
+    const response = await createUser(userData);
     console.log("response: ", response);
+    console.log("response: ", response.jwt);
+
     if (response) {
+      const token = response.jwt;
+      localStorage.setItem('token', token);
+      console.log('Register Token saved to localStorage:', token);
       // Assuming that the API response contains an "id" field if registration was successful
       alert("User registered successfully!");
       navigate("/home"); // Redirect to home after successful registration
@@ -148,7 +167,7 @@ function Register() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Header />
+      {/* <Header /> */}
       <FileUpload
         photoImage={formData.photoImage} // Pass the selected photo to FileUpload component
         onFileChange={handleFileChange} // Pass handleFileChange function

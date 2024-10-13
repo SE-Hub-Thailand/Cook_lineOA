@@ -24,7 +24,8 @@ const RecycleMachineLocations = () => {
   const [recycleMachines, setRecycleMachines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const token = import.meta.env.VITE_TOKEN_TEST ;
+  // const token = import.meta.env.VITE_TOKEN_TEST ;
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchRecycleMachines = async () => {

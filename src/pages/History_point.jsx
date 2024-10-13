@@ -11,7 +11,8 @@ import { convertDateTime } from '../components/ConvertDateTime';
 
 function History_point() {
   const API_URL = import.meta.env.VITE_API_URL;
-  const token = import.meta.env.VITE_TOKEN_TEST;
+  // const token = import.meta.env.VITE_TOKEN_TEST;
+  const token = localStorage.getItem('token');
   const { id } = useParams();
   const [ points, setHistoryPoints] = useState(null);
   const [loading, setLoading] = useState(true);

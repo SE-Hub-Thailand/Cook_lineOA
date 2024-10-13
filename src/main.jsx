@@ -38,7 +38,7 @@ import ShopList from './pages/ShopList.jsx';
 import Map from './pages/Map.jsx';
 import UpdateUserProfile from './pages/UpdateUserProfile.jsx';
 import CartSummary from './pages/CartSummary.jsx';
-import UpdateProfileStore from './pages/partner/UpdateProfileStore.jsx';
+// import UpdateProfileStore from './pages/partner/UpdateProfileStore.jsx';
 
 const liffId = import.meta.env.VITE_LIFF_ID ;
 const router = createBrowserRouter([
@@ -135,34 +135,34 @@ const router = createBrowserRouter([
     path: "/contact-us",
     element: <ContactUs />
   },
-  {
-    path: "/partner",
-    element: <ConfirmOrder />
-  },
-  {
-    path: "/partner/profile-store",
-    element: <ProfileStore />
-  },
-  {
-    path: "/partner/update-profile-store/:id",
-    element: <UpdateProfileStore />
-  },
-  {
-    path: "/partner/contact-us",
-    element: <ContactUs_Partner />
-  },
-  {
-    path: "/partner/pdpa",
-    element: <PDPA />
-  },
-  {
-    path: "/partner/get-money-item",
-    element: <GetMoneyItems />
-  },
-  {
-    path: "/partner/add-product",
-    element: <AddProduct />
-  },
+  // {
+  //   path: "/partner",
+  //   element: <ConfirmOrder />
+  // },
+  // {
+  //   path: "/partner/profile-store",
+  //   element: <ProfileStore />
+  // },
+  // {
+  //   path: "/partner/update-profile-store/:id",
+  //   element: <UpdateProfileStore />
+  // },
+  // {
+  //   path: "/partner/contact-us",
+  //   element: <ContactUs_Partner />
+  // },
+  // {
+  //   path: "/partner/pdpa",
+  //   element: <PDPA />
+  // },
+  // {
+  //   path: "/partner/get-money-item",
+  //   element: <GetMoneyItems />
+  // },
+  // {
+  //   path: "/partner/add-product",
+  //   element: <AddProduct />
+  // },
 ]);
 
 createRoot(document.getElementById('root')).render(

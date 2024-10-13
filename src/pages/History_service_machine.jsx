@@ -12,7 +12,8 @@ import { getAllHistoryMachines } from "../api/strapi/historyMachineApi";
 import { convertDateTime } from '../components/ConvertDateTime';
 
 export default function History_service_machine() {
-  const token = import.meta.env.VITE_TOKEN_TEST;
+  // const token = import.meta.env.VITE_TOKEN_TEST;
+  const token = localStorage.getItem('token');
   const { id } = useParams();
   const [recycleMachines, setRecycleMachines] = useState(null);
   const [loading, setLoading] = useState(true);

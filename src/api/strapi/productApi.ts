@@ -33,6 +33,7 @@ export const getAllProductsByShopId = async (token: string, shopId: number): Pro
             createdAt: item.attributes.createdAt,
             updatedAt: item.attributes.updatedAt,
             publishedAt: item.attributes.publishedAt,
+            numStock: item.attributes.numStock,
             image: item.attributes.image,
             shop: {
                 id: item.attributes.shop.data.id,

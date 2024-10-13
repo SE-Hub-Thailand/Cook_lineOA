@@ -1,7 +1,8 @@
 import Header from '../components/Header';
 import { useLocation } from 'react-router-dom';
-import { useState } from 'react'; // for toggle switch
-import QRCode from 'qrcode.react'; // Ensure you've installed this package: `npm install qrcode.react`
+import { useState } from 'react';
+import QRCode from 'qrcode.react';
+import { generateRandomString } from "../api/utils/random"; // Ensure the path is correct
 
 const CartSummary = () => {
   const location = useLocation();
@@ -9,13 +10,20 @@ const CartSummary = () => {
   const parsedCounts = typeof storedCounts === 'string' ? JSON.parse(storedCounts) : storedCounts;
 
   const [isOn, setIsOn] = useState(false); // toggle state for QR code
+  const [randomString, setRandomString] = useState(''); // Store the random string
+
+  let totalPointsSum = 0; // Declare total points sum
+  let totalCountSum = 0;  // Declare total count sum
 
   const toggleSwitch = () => {
     setIsOn(!isOn);
+    if (!isOn) {
+      // Generate the random string when toggle is turned on
+      const randomValue = generateRandomString(10); // Generate a 10-character string
+      setRandomString(randomValue);
+      console.log("Random string:", randomValue);
+    }
   };
-
-  let totalPointsSum = 0; // To store total points of all items
-  let totalCountSum = 0; // To store total count of all items
 
   return (
     <>
@@ -32,7 +40,7 @@ const CartSummary = () => {
                 if (count > 0) {
                   const totalPoints = item.point * count;
                   totalPointsSum += totalPoints; // Adding points to total sum
-				  totalCountSum += count; // Adding count to total count
+                  totalCountSum += count; // Adding count to total count
                   return (
                     <li key={item.id} className="flex flex-row justify-between items-start sm:items-center py-4 border-b border-gray-200">
                       <div className="sm:w-full">
@@ -76,7 +84,7 @@ const CartSummary = () => {
           </div>
           {isOn && (
             <div className="mt-10 flex justify-center">
-              <QRCode value="https://google.com" />
+              <QRCode value={randomString} /> {/* Generate QR code from random string */}
             </div>
           )}
         </div>

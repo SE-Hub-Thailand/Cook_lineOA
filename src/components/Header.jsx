@@ -20,14 +20,30 @@ function Header() {
   }
 
   const userId = import.meta.env.VITE_USER_ID;
-  const token = import.meta.env.VITE_TOKEN_TEST;
+  // const token = import.meta.env.VITE_TOKEN_TEST;
+  const token = localStorage.getItem('token');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const { cartItems } = useContext(CartContext); // Access cart items from CartContext
-  // console.log("cartItems in header: ", cartItems);
+  // // console.log("cartItems in header: ", cartItems);
   const [clicked, setClicked] = useState(false); // For mobile menu toggle
-  console.log("cartItems in header: ", cartItems);
+  // console.log("cartItems in header: ", cartItems);
+
+
+  // let totalPointsSum = 0; // To store total points of all items
+  // let totalCountSum = 0; /
+  // {cartItems && cartItems.length > 0 ? (
+  //   <ul className="space-y-3 sm:space-y-4">
+  //     {cartItems.map((item, index) => {
+  //       const count = parsedCounts[item.id];
+  //       if (count > 0) {
+  //         const totalPoints = item.point * count;
+  //         totalPointsSum += totalPoints; // Adding points to total sum
+  //         totalCountSum += count;
+
+
   const navigate = useNavigate();
   const handleBasketClick = () => {
     // Navigate to the CartSummary route

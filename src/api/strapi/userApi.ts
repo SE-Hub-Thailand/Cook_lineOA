@@ -92,7 +92,7 @@ export const getUser = async (userId: string, token: string): Promise<User> => {
     }
 };
 
-export const createUser = async (userData: Record<string, any>, token: string): Promise<User> => {
+export const createUser = async (userData: Record<string, any>): Promise<User> => {
     try {
         console.log('userData in createUser: ', userData);
         const url = `${API_URL}/api/auth/local/register`;  // Adjust the endpoint as per your API structure
@@ -100,7 +100,7 @@ export const createUser = async (userData: Record<string, any>, token: string): 
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                Authorization: `Bearer ${token}`,  // Include the JWT token in the Authorization header
+                // Authorization: `Bearer ${token}`,  // Include the JWT token in the Authorization header
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(userData),
