@@ -25,8 +25,8 @@ import path from 'path'
 export default defineConfig({
   server: {
     https: {
-      key: fs.readFileSync(path.resolve(__dirname, 'key.pem')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'cert.pem'))
+      key: '/root/Cook_lineOA/key.pem',
+      cert: '/root/Cook_lineOA/cert.pem',
     },
     host: true,  // หรือใช้ '--host' ก็ได้
     port: 5173,  // คุณสามารถเปลี่ยน port ได้ถ้าต้องการ
