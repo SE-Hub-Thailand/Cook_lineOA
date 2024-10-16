@@ -38,9 +38,35 @@ import ShopList from './pages/ShopList.jsx';
 import Map from './pages/Map.jsx';
 import UpdateUserProfile from './pages/UpdateUserProfile.jsx';
 import CartSummary from './pages/CartSummary.jsx';
+import LoadingSpinner from './components/LoadingSpinner';
 // import UpdateProfileStore from './pages/partner/UpdateProfileStore.jsx';
 
-const liffId = import.meta.env.VITE_LIFF_ID ;
+const liffId = import.meta.env.VITE_LIFF_ID;
+
+function AppWithLoader() {
+  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Set loading to true when navigation starts
+    setLoading(true);
+  }, [location]);
+
+  useEffect(() => {
+    // Set loading to false once navigation is done
+    const timeout = setTimeout(() => setLoading(false), 500); // Add slight delay for smoother transition
+
+    return () => clearTimeout(timeout);
+  }, [navigation.state]);
+
+  if (loading) {
+    return <LoadingSpinner />; // Show loading spinner while loading
+  }
+
+  return <RouterProvider router={router} />;
+}
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -111,14 +137,14 @@ const router = createBrowserRouter([
   //   path: "/store-map/paranee",
   //   element: <MapParanee />
   // },
-  // {
-  //   path: "/store-map/krung",
-  //   element: <MapKrung />
-  // },
-  // {
-  //   path: "/store-map/kamalad",
-  //   element: <MapKamalad />
-  // },
+  {
+    path: "/store-map/krung",
+    element: <MapKrung />
+  },
+  {
+    path: "/store-map/kamalad",
+    element: <MapKamalad />
+  },
   {
     path: "/conclusion",
     element: <Conclusion />

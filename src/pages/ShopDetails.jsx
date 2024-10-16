@@ -5,6 +5,7 @@ import { NavLink } from "react-router-dom";
 import { getAllShops } from '../api/strapi/shopApi'
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 function ShopDetails() {
   const [shops, setShops] = useState([]);
@@ -30,7 +31,7 @@ function ShopDetails() {
     fetchShops();
   }, [TOKEN]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <p>Error: {error}</p>;
 
   return (

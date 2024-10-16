@@ -20,8 +20,8 @@ const markerIcon = new L.Icon({
   iconSize: [35, 35],
 });
 
-const RecycleMachineLocations = () => {
-  const [recycleMachines, setRecycleMachines] = useState([]);
+const ShopLocation = () => {
+  const [shop, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   // const token = import.meta.env.VITE_TOKEN_TEST ;
@@ -31,7 +31,7 @@ const RecycleMachineLocations = () => {
     const fetchRecycleMachines = async () => {
       try {
         setLoading(true);
-        const recycleMachinesData = await getAllRecycleMachines(token);
+        const shopData = await getAllShops(token);
         setRecycleMachines(recycleMachinesData);
         setLoading(false);
       } catch (error) {
@@ -74,4 +74,4 @@ const RecycleMachineLocations = () => {
     );
 };
 
-export default RecycleMachineLocations;
+export default ShopLocation;

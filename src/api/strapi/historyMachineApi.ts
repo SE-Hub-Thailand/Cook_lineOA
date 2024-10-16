@@ -43,7 +43,7 @@ export const getAllHistoryMachines = async (id: string, token: string): Promise<
                     userType: item.attributes.user?.data?.attributes?.userType || '',
                 },
             }));
-        console.log('recycleMachines in get: ', recycleMachines); // Log to inspect the structure of the response
+        console.log('recycleMachines in getooo: ', recycleMachines); // Log to inspect the structure of the response
         return recycleMachines;
     } catch (error) {
         console.error('Error fetching recycle machines:', error.message);

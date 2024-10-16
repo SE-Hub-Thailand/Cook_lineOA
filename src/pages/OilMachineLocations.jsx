@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css';  // Import Leaflet CSS
 import { useEffect, useState } from 'react';
 import { getAllOilMachines } from '../api/strapi/oilMachineApi';
 import * as L from "leaflet";
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const containerStyle = {
   width: '100%',
@@ -43,7 +44,7 @@ const OilMachineLocations = () => {
     fetchOilMachines();
   }, [token]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <p>Error: {error}</p>;
   return (
     <>

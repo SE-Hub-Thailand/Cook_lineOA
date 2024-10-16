@@ -9,7 +9,7 @@ export const loginWithLineId = async (lineId: string) => {
     try {
         const result = await authenticateUser(identifier, password);
         console.log('result.user.id: ', result.user.id);
-        console.log('result.user.lineId: ', result.user.lineId);
+        console.log('result.user: ', result.user);
         return {
             jwt: result.jwt,
             user: {

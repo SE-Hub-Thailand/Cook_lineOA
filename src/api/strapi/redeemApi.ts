@@ -1,11 +1,13 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:1400';  // Fallback to default if env variable not set
+import { Token } from './../../../node_modules/acorn/dist/acorn.d';
 import { Redeem } from './types';
 
-
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:1400';  // Fallback to default if env variable not set
+const token = localStorage.getItem('token');
+// export const createRedeem  = async (redeemData: Record<string, any>): Promise<Redeem> => {
 export const createRedeem = async (redeemData: Redeem, token: string): Promise<Redeem> => {
     try {
         console.log('redeemData in createRedeem: ', redeemData);
-        const url = `${API_URL}/api/redeem`;  // Adjust the endpoint as per your API structure
+        const url = `${API_URL}/api/redeems`;  // Adjust the endpoint as per your API structure
 
         const response = await fetch(url, {
             method: 'POST',
@@ -17,6 +19,7 @@ export const createRedeem = async (redeemData: Redeem, token: string): Promise<R
         });
 
         console.log('body: ', JSON.stringify(redeemData));
+		console.log('response in redeemApi: ', response);
         if (!response.ok) {
             const errorData = await response.json();
             console.error('Error:', errorData);
@@ -28,6 +31,60 @@ export const createRedeem = async (redeemData: Redeem, token: string): Promise<R
         return data;
     } catch (error) {
         console.error('Error:', error.message);
+        throw error;
+    }
+};
+
+export const getAllRedeem = async (id: string, token: string): Promise<Redeem[]> => {
+    try {
+        // URL now includes id filter
+        const url = `${API_URL}/api/redeem?filters[user][id][$eq]=${id}&populate=user&populate=shop&populate=shop.image`;
+        console.log("heloooo");
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,  // Use token for authentication
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error fetching history point:', errorData);
+            throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Map the response data to an array of HistoryMachine objects
+        const points: Redeem[] = data.data
+            // .filter((item: any) => item.attributes.status === 'active') // Filter by status "active"
+            .map((item: any) => ({
+                id: item.id,
+                customer: {
+                    id: item.attributes.customer?.data?.id || '',
+                    username: item.attributes.customer?.data?.attributes?.username || '',
+                    email: item.attributes.customer?.data?.attributes?.email || '',
+                    fullName: item.attributes.customer?.data?.attributes?.fullName || '',
+                    lineId: item.attributes.customer?.data?.attributes?.lineId || '',
+                    userType: item.attributes.customer?.data?.attributes?.userType || '',
+					point: item.attributes.customer?.data?.attributes?.point || 0,
+                },
+                totalPoint: item.attributes.totalPoint,
+				status: item.attributes.status,
+				qrCode: item.attributes.qrCode,
+				productJsonArray: item.attributes.productJsonArray,
+				shop: {
+					id: item.attributes.shop?.data?.id || '',
+                    name: item.attributes.shop?.data?.attributes?.name || '',
+                    image: item.attributes.shop?.data?.attributes?.image || '',
+				},
+				date: item.attributes.date,
+				time: item.attributes.time,
+            }));
+       return points;
+    } catch (error) {
+        console.error('Error fetching recycle machines:', error.message);
         throw error;
     }
 };

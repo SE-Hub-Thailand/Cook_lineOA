@@ -12,7 +12,7 @@ import FormLabel from "@mui/material/FormLabel";
 import WebcamCapture from "../components/WebcamCapture.jsx";
 import { createUser } from "../api/strapi/userApi"; // Import createUser function
 import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
-
+import LoadingSpinner from "../components/LoadingSpinner.jsx";
 function Register() {
   // const token = import.meta.env.VITE_TOKEN_TEST;
   // const token = localStorage.getItem('token');
@@ -37,7 +37,7 @@ function Register() {
     gender: "",
     address: "",
     cardID: "",
-    photoImage: "",
+    photoImage: pictureUrl,
     checkedOne: false,
   });
 
@@ -114,7 +114,7 @@ function Register() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     let uploadedImageObject = null;
-
+    console.log("formData: ", formData);
     // อัปโหลดรูปภาพก่อน ถ้ามีรูปภาพที่จะอัปโหลด
     if (formData.photoImage) {
       console.log("formData.photoImage: ", formData.photoImage);
@@ -162,7 +162,7 @@ function Register() {
     }));
   };
 
-  if (loading) return <p>Loading...</p>; // Loading state
+  if (loading) return <LoadingSpinner />; // Loading state
   if (error) return <p>Error: {error}</p>; // Error state
 
   return (

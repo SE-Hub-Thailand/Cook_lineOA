@@ -1,40 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useLiff } from 'react-liff';
-import axios from 'axios';
 import './App.css';
 import { loginWithLineId } from './api/business/login'
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
-// import { CartProvider } from './components/CartContext';
-// const App = () => {
-//   const navigate = useNavigate();
-//   const lineId = import.meta.env.VITE_LINE_ID;
-//   const token = import.meta.env.VITE_TOKEN_TEST;
-//   const API_URL = import.meta.env.VITE_API_URL;
-
-//   useEffect(() => {
-//     // Check if the environment variables are set
-//     console.log("lineId:", lineId);
-//     console.log("API_URL:", API_URL);
-//     console.log("Login successful. Redirecting to app...");
-
-//     // Redirect to /home after checking some condition or fetching some data if needed
-//     navigate('/home');
-//   }, [navigate, lineId, token, API_URL]);
-
-//   return (
-//     <>
-//     {/* <CartProvider> */}
-//       <div className="App">
-//         <header className="App-header">
-//           <p>Redirecting...</p>
-//         </header>
-//       </div>
-//     {/* </CartProvider> */}
-//     </>
-//   );
-// };
-
-// export default App;
+import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from './components/LoadingSpinner';
+// import Home from './pages/Home';
 
 const App = () => {
   const [displayName, setDisplayName] = useState('');
@@ -74,6 +44,11 @@ const App = () => {
           // Save the token in localStorage
           // const token = localStorage.getItem('token');
           localStorage.setItem('token', token);
+          // console.log('response.user.point: ', response.user.point);
+          // localStorage.setItem('user', JSON.stringify(response.user));
+          // console.log('response.user: ', response.user);
+          // console.log('JSON.stringify(response.user): ', JSON.stringify(response.user));
+
           console.log('Token saved to localStorage:', token);
           // This line is login success
           console.log("Login successful. Redirecting to app...");
@@ -115,7 +90,7 @@ const App = () => {
   // Render the login/logout buttons and display name
   const showDisplayName = () => {
     if (error) return <p>Something went wrong: {error.message}</p>;
-    if (!isReady) return <p>Loading...</p>;
+    if (!isReady) return <LoadingSpinner />;
 
     if (!isLoggedIn) {
       return (
@@ -138,7 +113,7 @@ const App = () => {
   return (
     <div className="App">
       <header className="App-header">
-        {loading ? <p>Loading...</p> : showDisplayName()}
+        {loading ? <LoadingSpinner /> : showDisplayName()}
         {/* {errorMessage && <p className="error-message">{errorMessage}</p>} */}
       </header>
     </div>
@@ -146,3 +121,135 @@ const App = () => {
 };
 
 export default App;
+
+// const App = () => {
+//   const [loading, setLoading] = useState(true);  // เริ่มต้นด้วย loading
+//   const [errorMessage, setErrorMessage] = useState('');
+//   const { liff, isLoggedIn, isReady } = useLiff();
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     const initializeLiff = async () => {
+//       try {
+//         if (!isReady) return;  // รอจนกว่า LIFF จะพร้อมใช้งาน
+
+//         // ถ้ายังไม่ได้ล็อกอิน ให้เรียก liff.login()
+//         if (!isLoggedIn) {
+//           liff.login();
+//           return;
+//         }
+
+//         // ถ้าล็อกอินแล้ว ให้ดึงข้อมูลโปรไฟล์ผู้ใช้
+//         const profile = await liff.getProfile();
+//         const lineId = profile.userId;
+
+//         // เก็บข้อมูลโปรไฟล์ผู้ใช้ใน localStorage
+//         localStorage.setItem('displayName', profile.displayName);
+//         localStorage.setItem('pictureUrl', profile.pictureUrl);
+//         localStorage.setItem('lineId', lineId);
+
+//         // เรียก API ฝั่งเซิร์ฟเวอร์เพื่อล็อกอินด้วย Line ID
+//         const response = await loginWithLineId(lineId);
+
+//         if (response && response.jwt) {
+//           // ถ้าล็อกอินสำเร็จ เก็บ JWT token แล้ว redirect ไปที่หน้า home
+//           localStorage.setItem('token', response.jwt);
+//           navigate('/home');
+//         } else {
+//           // ถ้าล็อกอินไม่สำเร็จ ให้ redirect ไปที่หน้า register
+//           navigate(`/register/${lineId}`);
+//         }
+//       } catch (err) {
+//         console.error('Error during login or initialization:', err);
+//         setErrorMessage('Error during login or initialization. Please try again.');
+//       } finally {
+//         setLoading(false);  // เมื่อเสร็จสิ้นให้หยุดการแสดง loading spinner
+//       }
+//     };
+
+//     // เริ่มการทำงานเมื่อ LIFF พร้อมใช้งานและโหลดเสร็จแล้ว
+//     if (isReady) {
+//       initializeLiff();
+//     }
+//   }, [liff, isLoggedIn, isReady, navigate]);
+
+//   if (loading) {
+//     return <LoadingSpinner />;
+//   }
+
+//   return (
+//     <div className="App">
+//       <header className="App-header">
+//         {errorMessage && <p>{errorMessage}</p>}
+//       </header>
+//     </div>
+//   );
+// };
+
+// export default App;
+
+
+
+
+  // Handle fetching redeem details (you can replace itemId dynamically)
+//   const fetchRedeemDetails = async (itemId) => {
+//     const token = localStorage.getItem('token');
+//     try {
+//       const response = await axios.get(`https://cookb.opencodelab.asia/api/redeems/${itemId}`, {
+//         headers: { Authorization: `Bearer ${token}` },
+//       });
+
+//       // Process successful retrieval
+//       console.log('Item claim:', response.data);
+//     } catch (err) {
+//       console.error('Error fetching redeem details:', err);
+//       setErrorMessage('Failed to fetch the redeem details.');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Render the login/logout buttons and display name
+//   const showDisplayName = () => {
+//     if (error) return <p>Something went wrong: {error.message}</p>;
+//     if (!isReady) return <p>Loading...</p>;
+//     if (!isLoggedIn) {
+//       liff.login();  // ล็อกอินถ้ายังไม่ได้ล็อกอิน
+//     } else {
+//       // ถ้าล็อกอินแล้วให้ปิดหน้าต่าง LIFF
+//       liff.closeWindow();
+//     }
+
+//     // if (!isLoggedIn) {
+//     //     return (
+//     //     <>
+//     //     <button className="App-button" onClick={liff.login()}>
+//     //       Login
+//     //     </button>
+//     //   </>
+//     //   );
+//     // }
+
+//     // return (
+//     //   <>
+//     //     <p>Welcome, {displayName}!</p>
+//     //     <button className="App-button" onClick={() => { liff.logout(); setDisplayName(''); }}>
+//     //       Logout
+//     //     </button>
+//     //   </>
+//     // );
+//   };
+
+//   return (
+//     <div className="App">
+//       <header className="App-header">
+//         {loading ? <LoadingSpinner /> : null }
+//       </header>
+//     </div>
+//   );
+// };
+
+// export default App;
+
+// {/* {!isLoggedIn ? liff.login() :  <LoadingSpinner />} */}
+// {/* {errorMessage && <p className="error-message">{errorMessage}</p>} */}

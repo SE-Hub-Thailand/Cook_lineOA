@@ -3,7 +3,7 @@ import { useLiff } from 'react-liff';
 // import axios from 'axios';
 import { loginWithLineId } from '../api/business/login'
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
-
+import LoadingSpinner from '../components/LoadingSpinner';
 // const API_URL = import.meta.env.VITE_API_URL
 const Login = () => {
   const [displayName, setDisplayName] = useState('');
@@ -73,7 +73,7 @@ const Login = () => {
   // Render the login/logout buttons and display name
   const showDisplayName = () => {
     if (error) return <p>Something went wrong: {error.message}</p>;
-    if (!isReady) return <p>Loading...</p>;
+    if (!isReady) return <LoadingSpinner />;
 
     if (!isLoggedIn) {
       return (
@@ -94,7 +94,7 @@ const Login = () => {
   return (
     <div className="App">
       <header className="App-header">
-        {loading ? <p>Loading...</p> : showDisplayName()}
+        {loading ? <LoadingSpinner /> : showDisplayName()}
         {errorMessage && <p className="error-message">{errorMessage}</p>}
       </header>
     </div>

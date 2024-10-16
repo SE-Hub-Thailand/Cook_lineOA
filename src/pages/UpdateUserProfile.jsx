@@ -12,7 +12,7 @@ import FormLabel from "@mui/material/FormLabel";
 import WebcamCapture from "../components/WebcamCapture.jsx";
 import { getUser, updateUser } from "../api/strapi/userApi"; // Import updateUser function
 import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
-
+import LoadingSpinner from "../components/LoadingSpinner.jsx";
 
 function UpdateUserProfile() {
   const userId = import.meta.env.VITE_USER_ID;
@@ -169,7 +169,7 @@ function UpdateUserProfile() {
     }));
   };
 
-  if (loading) return <p>Loading...</p>; // Loading state
+  if (loading) return <LoadingSpinner />; // Loading state
   if (error) return <p>Error: {error}</p>; // Error state
 
   return (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLiff } from 'react-liff';
 import axios from 'axios';
-
+import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
 
 const App = () => {
@@ -79,7 +79,7 @@ const App = () => {
 
   const showDisplayName = () => {
     if (error) return <p>Something is wrong.</p>;
-    if (!isReady) return <p>Loading...</p>;
+    if (!isReady) return <LoadingSpinner />;
 
     if (!isLoggedIn) {
       return (

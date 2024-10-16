@@ -10,7 +10,7 @@ import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import WebcamCapture from "../components/WebcamCapture.jsx";
 import { getUser } from "../api/strapi/userApi";
-
+import LoadingSpinner from "../components/LoadingSpinner.jsx";
 function UserProfile() {
 
   const theme = createTheme({
@@ -100,7 +100,7 @@ function UserProfile() {
     }));
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <p>Error: {error}</p>;
 
   return (

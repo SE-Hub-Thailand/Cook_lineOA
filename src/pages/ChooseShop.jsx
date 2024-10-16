@@ -11,6 +11,7 @@ import { useEffect, useState, useContext } from 'react';
 import { getAllProductsByShopId } from "../api/strapi/productApi";
 import { CartContext } from '../components/CartContext';
 import PointsModal from '../components/PointsModal';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function ChooseShop() {
   const [products, setProducts] = useState([]);
@@ -23,17 +24,17 @@ export default function ChooseShop() {
   //   return storedCounts ? JSON.parse(storedCounts) : {};
   // });
   const [counts, setCounts] = useState(() => {
+
     const isRefreshed = true; // ใช้เงื่อนไขนี้สำหรับการเช็คว่ามีการรีเฟรชหรือไม่
     if (isRefreshed) {
       // รีเซ็ตค่า counts เป็น 0 หรือ object ว่างเปล่า
       localStorage.removeItem('cart');
       localStorage.removeItem('cart2');
-      localStorage.removeItem('point');
-
-
+      // localStorage.removeItem('point');
       return {};
     } else {
       // ดึงค่าจาก localStorage ถ้ามีการบันทึกไว้
+
       const storedCounts = localStorage.getItem('cart');
       return storedCounts ? JSON.parse(storedCounts) : {};
     }
@@ -49,6 +50,7 @@ export default function ChooseShop() {
       try {
         setLoading(true);
         const ProductData = await getAllProductsByShopId(token, id);
+        localStorage.setItem('shopId', id);
         setProducts(ProductData);
         setLoading(false);
 
@@ -91,11 +93,8 @@ export default function ChooseShop() {
         totalCountSum += count; // Add count to total count sum
       }
     });
-
-    if (totalPointsSum > 100) {
-      console.log("totalPointsSum Before: ", totalPointsSum);
-      // console.log("totalPointsSum แต็มไม่พอ: ", totalPointsSum + totalPoints);
-      // alert('แต้มไม่พอ'); // Alert if totalPointsSum exceeds 100
+    const currentPoint = localStorage.getItem('point');
+    if (totalPointsSum > currentPoint) {
       setShowModal(true);
       // return;
     }
@@ -191,7 +190,7 @@ export default function ChooseShop() {
   );
   // console.log("CountsById[", product.id, "] : ", counts[products.id]);
   console.log("products: ", products);
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <LoadingSpinner />
   if (error) return <p>Error: {error}</p>;
 
   return (
@@ -260,7 +259,9 @@ export default function ChooseShop() {
 
         {/* Display a message if no products match the search term */}
         {filteredProducts.length === 0 && <p className="text-center text-2xl mt-10">No products found</p>}
-        {showModal && <PointsModal closeModal={() => setShowModal(false)} />}
+        {showModal &&
+          <PointsModal closeModal={() => setShowModal(false)} />
+        }
       </Container>
     </>
   );

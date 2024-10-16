@@ -7,48 +7,45 @@ import { BsCoin } from "react-icons/bs";
 import { getUser } from "../api/strapi/userApi"; // Import getUser function
 import { CartContext } from "./CartContext"; // Import CartContext for cart items
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from './LoadingSpinner';
+import { getAllHistoryPoints } from "../api/strapi/historyPointApi";
+import Alert from './Alert';
 
 function Header() {
   // function Header() {
 
   const storedCounts = localStorage.getItem('cart');
+  const updateCounts = localStorage.getItem('cart2');
+
+  // console.log("storedCounts in header: ", storedCounts);
+
+  // console.log("updateCounts in header: ", updateCounts);
+  // const user_local = localStorage.getItem('user');
   let totalItems = 0;
 
   if (storedCounts) {
     const counts = JSON.parse(storedCounts); // Parse the JSON string into an object
     totalItems = Object.values(counts).reduce((acc, count) => acc + count, 0);
   }
-
+  console.log("totalItems in header: ", totalItems);
   const userId = import.meta.env.VITE_USER_ID;
+  const [showModal, setShowModal] = useState(false);
+  const [showModal2, setShowModal2] = useState(false);
+
   // const token = import.meta.env.VITE_TOKEN_TEST;
   const token = localStorage.getItem('token');
   const [user, setUser] = useState(null);
+  const [points, setHistoryPoints] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const { cartItems } = useContext(CartContext); // Access cart items from CartContext
-  // // console.log("cartItems in header: ", cartItems);
+  console.log("cartItems in header: ", cartItems);
   const [clicked, setClicked] = useState(false); // For mobile menu toggle
-  // console.log("cartItems in header: ", cartItems);
-
-
-  // let totalPointsSum = 0; // To store total points of all items
-  // let totalCountSum = 0; /
-  // {cartItems && cartItems.length > 0 ? (
-  //   <ul className="space-y-3 sm:space-y-4">
-  //     {cartItems.map((item, index) => {
-  //       const count = parsedCounts[item.id];
-  //       if (count > 0) {
-  //         const totalPoints = item.point * count;
-  //         totalPointsSum += totalPoints; // Adding points to total sum
-  //         totalCountSum += count;
 
 
   const navigate = useNavigate();
-  const handleBasketClick = () => {
-    // Navigate to the CartSummary route
-    navigate('/cart', { state: { storedCounts, cartItems } });
-  };
+
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -56,6 +53,11 @@ function Header() {
         setLoading(true);
         const userData = await getUser(userId, token);
         setUser(userData);
+        // localStorage.setItem('user', JSON.stringify(userData));
+
+        const pointsData = await getAllHistoryPoints(userData.id, token);
+        setHistoryPoints(pointsData.length > 0 ? pointsData : []);
+        console.log("pointsData in header: ", pointsData);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -66,19 +68,44 @@ function Header() {
     fetchUser();
   }, [userId, token]);
 
+  localStorage.setItem('user', JSON.stringify(user));
+
+
+
+  if (user?.point )
+    localStorage.setItem('point', user.point);
   // Handle mobile menu toggle
   const handleClick = () => {
     setClicked((prevState) => !prevState);
   };
+  const handleBasketClick = () => {
+    // Navigate to the CartSummary route
+    if (totalItems === 0)
+      setShowModal(true);
+    else
+    {
+      localStorage.setItem('totalItems', totalItems);
+      navigate('/cart', { state: { storedCounts, cartItems } });
+
+    }
+
+  };
+  const handleCoinClick = () => {
+    // Navigate to the CartSummary route
+    if (points.length === 0)
+      setShowModal2(true);
+    else
+      navigate(`/history-point/${user?.id}`);
+  };
 
   // Loading and Error handling
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <LoadingSpinner />
   if (error) return <p>Error: {error}</p>;
 
   return (
     <>
       <nav className="flex items-center justify-between p-5 pr-20 bg-white">
-        <NavLink to="/">
+        <NavLink to="/home">
           <img src={logo} alt="Logo" width={50} />
         </NavLink>
 
@@ -94,14 +121,14 @@ function Header() {
 
 
         {/* Coin Icon and Balance */}
-        <NavLink to={`/history-point/${user?.id}`} >
+        {/* <NavLink to={`/history-point/${user?.id}`} > */}
           <div className="flex flex-col items-center">
-            <BsCoin className="w-7 h-7 text-yellow-hard ml-8" />
+            <BsCoin className="w-7 h-7 text-yellow-hard ml-8" onClick={handleCoinClick}/>
             <p className="ml-6 mt-2">
               <strong>{user?.point ?? 0}</strong>
             </p>
           </div>
-        </NavLink>
+        {/* </NavLink> */}
 
         <div>
           <ul id="navbar" className={clicked ? "navbar open" : "navbar"}>
@@ -113,7 +140,7 @@ function Header() {
                   return { color: isActive ? "yellow-hard" : "" };
                 }}
               >
-                ข้อมูลส่วนตัว/ลงทะเบียน
+                ข้อมูลส่วนตัว
               </NavLink>
             </li>
             <li>
@@ -145,6 +172,14 @@ function Header() {
           <i id="bar" className={clicked ? "fas fa-times" : "fas fa-bars"}></i>
         </div>
       </nav>
+
+      {showModal &&
+        <Alert title="No items in the cart." message="Please add some products to proceed." closeModal={() => setShowModal(false)} />
+      }
+      {showModal2 &&
+        <Alert title="No Point Redemption Records." message="Please make a redemption to view your history." closeModal={() => setShowModal2(false)} />
+      }
+
     </>
   );
 }
