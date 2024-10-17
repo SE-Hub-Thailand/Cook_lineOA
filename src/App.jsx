@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLiff } from 'react-liff';
 import './App.css';
 import { loginWithLineId } from './api/business/login'
@@ -11,6 +11,7 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const { error, isLoggedIn, isReady, liff } = useLiff();
+  const loginButtonRef = useRef(null);
   const navigate = useNavigate();
 
   // Initialize LIFF and login or register the user
@@ -35,22 +36,12 @@ const App = () => {
         if(!response){
           // This line is login fail
           // This line we will redirect to sign up page
-          console.log("Login failed. Redirecting to sign up page...");
-          // navigate(`/register/${lineId}`); // Redirect to the Register component
-          // navigate(`/register/${lineId}`);
+          console.log("Login failed. Redirecting to sign up page...");;
           navigate('/pdpa_customer');
           // return;
         }else{
           const token = response.jwt; // Access the token from the response
-
-          // Save the token in localStorage
-          // const token = localStorage.getItem('token');
           localStorage.setItem('token', token);
-          // console.log('response.user.point: ', response.user.point);
-          // localStorage.setItem('user', JSON.stringify(response.user));
-          // console.log('response.user: ', response.user);
-          // console.log('JSON.stringify(response.user): ', JSON.stringify(response.user));
-
           console.log('Token saved to localStorage:', token);
           // This line is login success
           console.log("Login successful. Redirecting to app...");
@@ -68,7 +59,7 @@ const App = () => {
       setLoading(true);
       initializeLiff();
     }
-  }, [liff, isLoggedIn]);
+  }, [liff, isReady, isLoggedIn, navigate]);
 
 
   // Handle fetching redeem details (you can replace itemId dynamically)
@@ -91,25 +82,27 @@ const App = () => {
 
   // Render the login/logout buttons and display name
   const showDisplayName = () => {
+
     if (error) return <p>Something went wrong: {error.message}</p>;
     if (!isReady) return <LoadingSpinner />;
 
     if (!isLoggedIn) {
+      // liff.login();  // ล็อกอินถ้ายังไม่ได้ล็อกอิน
       return (
+        // <button className="App-button" onClick={() => liff.login()}>
+        //   Login
+        // </button>
         <button className="App-button" onClick={() => liff.login()}>
-          Login
-        </button>
+        Login
+      </button>
       );
     }
 
-    return (
-      <>
-        <p>Welcome, {displayName}!</p>
-        <button className="App-button" onClick={() => { liff.logout(); setDisplayName(''); }}>
-          Logout
-        </button>
-      </>
-    );
+    // return (
+    //   <>
+    //     <p>Welcome, {displayName}!</p>
+    //   </>
+    // );
   };
 
   return (
