@@ -25,6 +25,7 @@ const App = () => {
 
         localStorage.setItem('displayName', profile.displayName);
         localStorage.setItem('pictureUrl', profile.pictureUrl);
+        localStorage.setItem('lineId', lineId);
 
         // Set display name from profile
         setDisplayName(profile.displayName + "xxxx");
@@ -36,7 +37,8 @@ const App = () => {
           // This line we will redirect to sign up page
           console.log("Login failed. Redirecting to sign up page...");
           // navigate(`/register/${lineId}`); // Redirect to the Register component
-          navigate(`/register/${lineId}`);
+          // navigate(`/register/${lineId}`);
+          navigate('/pdpa_customer');
           // return;
         }else{
           const token = response.jwt; // Access the token from the response

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-
+import PropTypes from "prop-types"
 import styled from "styled-components"
 
 // Define styled components for styling
@@ -13,7 +13,6 @@ const WebcamContainer = styled.div`
 const WebcamVideo = styled.video`
   width: 100%;
   border-radius: 10px;
-  /* Apply specific styles only for mobile devices */
   @media (max-width: 767px) {
     height: auto;
     object-fit: cover;
@@ -50,16 +49,43 @@ const WebcamButton = styled.button`
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `
 
-const WebcamCapture = () => {
-  const videoRef = useRef(null)
-  const canvasRef = useRef(null)
+// const base64ToFile = (base64, fileName, mimeType) => {
+//   const byteCharacters = atob(base64.split(',')[1]);
+//   const byteNumbers = new Array(byteCharacters.length);
+//   for (let i = 0; i < byteCharacters.length; i++) {
+//     byteNumbers[i] = byteCharacters.charCodeAt(i);
+//   }
+//   const byteArray = new Uint8Array(byteNumbers);
 
-  const [mediaStream, setMediaStream] = useState(null)
-  const [capturedImage, setCapturedImage] = useState(null)
+//   return new File([byteArray], fileName, { type: mimeType });
+// };
+
+const WebcamCapture = ({ onCapture }) => {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  const [mediaStream, setMediaStream] = useState(null);
+  const [capturedImage, setCapturedImage] = useState(null);
 
   useEffect(() => {
-    startWebcam()
-  }, [])
+    startWebcam();
+  }, []);
+
+  useEffect(() => {
+    if (capturedImage) {
+      localStorage.setItem('cardIdImage', capturedImage);  // บันทึก imageDataUrl ใน localStorage
+      console.log("Saved image to localStorage:", capturedImage);
+
+      // ส่งค่า capturedImage กลับไปให้ parent component เพื่ออัพเดทสถานะ
+      if (onCapture) {
+        onCapture(capturedImage);  // ส่งภาพที่ capture กลับไป
+      }
+    } else {
+      if (onCapture) {
+        onCapture(null);  // หากไม่มีภาพให้ส่งค่า null กลับไป
+      }
+    }
+  }, [capturedImage, onCapture]);
 
   const startWebcam = async () => {
     try {
@@ -67,59 +93,53 @@ const WebcamCapture = () => {
         video: {
           facingMode: "user" // Request the front camera (selfie camera)
         }
-      })
+      });
       if (videoRef.current) {
-        videoRef.current.srcObject = stream
+        videoRef.current.srcObject = stream;
       }
-      setMediaStream(stream)
+      setMediaStream(stream);
     } catch (error) {
-      console.error("Error accessing webcam", error)
+      console.error("Error accessing webcam", error);
     }
-  }
+  };
 
-  // Function to stop the webcam
   const stopWebcam = () => {
     if (mediaStream) {
       mediaStream.getTracks().forEach(track => {
-        track.stop()
-      })
-      setMediaStream(null)
+        track.stop();
+      });
+      setMediaStream(null);
     }
-  }
+  };
 
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current
-      const canvas = canvasRef.current
-      const context = canvas.getContext("2d")
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
 
-      // Set canvas dimensions to match video stream
       if (context && video.videoWidth && video.videoHeight) {
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-        // Draw video frame onto canvas
-        context.drawImage(video, 0, 0, canvas.width, canvas.height)
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Get image data URL from canvas
-        const imageDataUrl = canvas.toDataURL("image/jpeg")
+        const imageDataUrl = canvas.toDataURL("image/jpeg");
 
-        // Set the captured image
-        setCapturedImage(imageDataUrl)
+        setCapturedImage(imageDataUrl);
+        console.log("type cardIdImageUrl webcam: ", typeof(imageDataUrl));
+        console.log("cardIdImageUrl webcam: ", imageDataUrl);
 
-        // Stop the webcam
-        stopWebcam()
-
-        // You can do something with the captured image here, like save it to state or send it to a server
+        stopWebcam();
       }
     }
-  }
+  };
 
-  // Function to reset state (clear media stream and refs)
   const resetState = () => {
-    stopWebcam() // Stop the webcam if it's active
-    setCapturedImage(null) // Reset captured image
-  }
+    stopWebcam();
+    setCapturedImage(null);  // Reset capturedImage
+    startWebcam();
+  };
 
   return (
     <WebcamContainer>
@@ -130,24 +150,18 @@ const WebcamCapture = () => {
         </>
       ) : (
         <>
-        <div className="w-full h-auto bg-white md:w-full md:h-auto lg:w-full lg-h-auto">
-          <WebcamVideo ref={videoRef} autoPlay muted />
-          <WebcamCanvas ref={canvasRef} />
-          {!videoRef.current ? (
-              <WebcamButton
-                onClick={startWebcam}
-                style={{ backgroundColor: "#FBB615", color: "black", width: '83.333333%' }}
-              >
-                เริ่มถ่ายรูป
-              </WebcamButton>
-          ) : (
+          <div className="w-full h-auto bg-white md:w-full md:h-auto lg:w-full lg-h-auto">
+            <WebcamVideo ref={videoRef} autoPlay muted />
+            <WebcamCanvas ref={canvasRef} />
             <WebcamButton style={{ backgroundColor: "#026D44", color: "white", width: '83.333333%' }} onClick={captureImage}>ถ่ายรูป</WebcamButton>
-          )}
-        </div>
+          </div>
         </>
       )}
     </WebcamContainer>
-  )
-}
+  );
+};
+WebcamCapture.propTypes = {
+  onCapture: PropTypes.func.isRequired,
+};
 
-export default WebcamCapture
+export default WebcamCapture;

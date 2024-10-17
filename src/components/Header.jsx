@@ -8,8 +8,9 @@ import { getUser } from "../api/strapi/userApi"; // Import getUser function
 import { CartContext } from "./CartContext"; // Import CartContext for cart items
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from './LoadingSpinner';
-import { getAllHistoryPoints } from "../api/strapi/historyPointApi";
+// import { getAllHistoryPoints } from "../api/strapi/historyPointApi";
 import Alert from './Alert';
+import { getAllRedeems } from "../api/strapi/redeemApi";
 
 function Header() {
   // function Header() {
@@ -28,7 +29,7 @@ function Header() {
     totalItems = Object.values(counts).reduce((acc, count) => acc + count, 0);
   }
   console.log("totalItems in header: ", totalItems);
-  const userId = import.meta.env.VITE_USER_ID;
+  const userId = localStorage.getItem('lineId');
   const [showModal, setShowModal] = useState(false);
   const [showModal2, setShowModal2] = useState(false);
 
@@ -52,10 +53,11 @@ function Header() {
       try {
         setLoading(true);
         const userData = await getUser(userId, token);
+        localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
         // localStorage.setItem('user', JSON.stringify(userData));
 
-        const pointsData = await getAllHistoryPoints(userData.id, token);
+        const pointsData = await getAllRedeems(userData?.id, token);
         setHistoryPoints(pointsData.length > 0 ? pointsData : []);
         console.log("pointsData in header: ", pointsData);
         setLoading(false);
@@ -68,7 +70,7 @@ function Header() {
     fetchUser();
   }, [userId, token]);
 
-  localStorage.setItem('user', JSON.stringify(user));
+  // localStorage.setItem('user', JSON.stringify(user));
 
 
 
@@ -174,10 +176,10 @@ function Header() {
       </nav>
 
       {showModal &&
-        <Alert title="No items in the cart." message="Please add some products to proceed." closeModal={() => setShowModal(false)} />
+        <Alert title="No items in the cart." message="Please add some products to proceed." path="0" closeModal={() => setShowModal(false)} />
       }
       {showModal2 &&
-        <Alert title="No Point Redemption Records." message="Please make a redemption to view your history." closeModal={() => setShowModal2(false)} />
+        <Alert title="No Point Redemption Records." message="Please make a redemption to view your history." path="0" closeModal={() => setShowModal2(false)} />
       }
 
     </>

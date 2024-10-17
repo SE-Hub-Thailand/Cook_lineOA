@@ -39,6 +39,7 @@ import Map from './pages/Map.jsx';
 import UpdateUserProfile from './pages/UpdateUserProfile.jsx';
 import CartSummary from './pages/CartSummary.jsx';
 import LoadingSpinner from './components/LoadingSpinner';
+import PDPA_Customer from './pages/PDPA_Customer.jsx';
 // import UpdateProfileStore from './pages/partner/UpdateProfileStore.jsx';
 
 const liffId = import.meta.env.VITE_LIFF_ID;
@@ -118,8 +119,12 @@ const router = createBrowserRouter([
     element: <UserProfile />
   },
   {
-    path: "/register/:userId",
+    path: "/register",
     element: <Register />
+  },
+  {
+    path: "/pdpa_customer",
+    element: <PDPA_Customer />
   },
   {
     path: "/update-user-profile",
@@ -137,14 +142,14 @@ const router = createBrowserRouter([
   //   path: "/store-map/paranee",
   //   element: <MapParanee />
   // },
-  {
-    path: "/store-map/krung",
-    element: <MapKrung />
-  },
-  {
-    path: "/store-map/kamalad",
-    element: <MapKamalad />
-  },
+  // {
+  //   path: "/store-map/krung",
+  //   element: <MapKrung />
+  // },
+  // {
+  //   path: "/store-map/kamalad",
+  //   element: <MapKamalad />
+  // },
   {
     path: "/conclusion",
     element: <Conclusion />

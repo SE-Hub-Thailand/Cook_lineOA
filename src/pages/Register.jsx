@@ -11,17 +11,18 @@ import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import WebcamCapture from "../components/WebcamCapture.jsx";
 import { createUser } from "../api/strapi/userApi"; // Import createUser function
-import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
+import Alert from "../components/Alert.jsx";
+
+// import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
+import { handlePhotoUpload, uploadImageFromBase64 } from "../api/strapi/uploadApi";
 function Register() {
-  // const token = import.meta.env.VITE_TOKEN_TEST;
-  // const token = localStorage.getItem('token');
   const displayName = localStorage.getItem('displayName');
   const pictureUrl = localStorage.getItem('pictureUrl');
   console.log("displayName in Register: ", displayName);
   console.log("pictureUrl in Register: ", pictureUrl);
   // console.log("token in Register: ", token);
-  const { userId } = useParams();
+  const userId = localStorage.getItem('lineId');
   const theme = createTheme({
     typography: {
       fontFamily: "Sarabun",
@@ -37,6 +38,7 @@ function Register() {
     gender: "",
     address: "",
     cardID: "",
+    cardIdImage: "",
     photoImage: pictureUrl,
     checkedOne: false,
   });
@@ -45,14 +47,31 @@ function Register() {
   const [isFormValid, setIsFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   // Function to handle file change from FileUpload component
   const handleFileChange = (file) => {
+    console.log("file change: ", file);
     setFormData((prevData) => ({
       ...prevData,
       photoImage: file, // Store the file in formData
     }));
   };
+  const [hasImage, setHasImage] = useState(false);  // สถานะว่ามีภาพหรือไม่
+
+  const handleImageCapture = (imageSrc) => {
+    console.log("imageSrc: ", imageSrc);
+    if (imageSrc) {
+      setHasImage(true);  // มีภาพอยู่
+      // setFormData((prevData) => ({
+      //   ...prevData,
+      //   cardIdImage: imageSrc,
+      // }));
+    } else {
+      setHasImage(false);  // ไม่มีภาพ
+    }
+  };
+// ]
 
   const handleInputChange = (e) => {
     const { id, name, value, type, checked } = e.target;
@@ -70,15 +89,9 @@ function Register() {
       gender,
       address,
       cardID,
+      // cardIdImage,
       checkedOne,
     } = formData;
-
-    // setFormData({
-    //   username: displayName,
-    //   photoImage: pictureUrl,
-    // //   photoImage: userData.photoImage || "", // Assuming the image is not fetched here
-    //   checkedOne: false, // Assume consent is not automatically checked
-    // });
 
     setIsFormValid(
       username &&
@@ -87,48 +100,39 @@ function Register() {
         gender &&
         address &&
         cardID &&
+        // hasImage &&
         checkedOne
     );
   }, [formData]);
 
-  const createPhotoImageObject = (uploadedImageData) => {
-    return {
-      id: uploadedImageData.id,
-      name: uploadedImageData.name,
-      alternativeText: uploadedImageData.alternativeText || null,
-      caption: uploadedImageData.caption || null,
-      width: uploadedImageData.width,
-      height: uploadedImageData.height,
-      formats: uploadedImageData.formats, // If formats are available
-      hash: uploadedImageData.hash,
-      ext: uploadedImageData.ext,
-      mime: uploadedImageData.mime,
-      size: uploadedImageData.size,
-      url: uploadedImageData.url,
-      provider: uploadedImageData.provider,
-      createdAt: uploadedImageData.createdAt,
-      updatedAt: uploadedImageData.updatedAt,
-    };
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-    let uploadedImageObject = null;
     console.log("formData: ", formData);
     // อัปโหลดรูปภาพก่อน ถ้ามีรูปภาพที่จะอัปโหลด
+    let imageId, cardId_id = 0;
     if (formData.photoImage) {
-      console.log("formData.photoImage: ", formData.photoImage);
-      const uploadedImageData = await uploadImage(formData.photoImage);
-      uploadedImageObject = createPhotoImageObject(uploadedImageData); // สร้าง object สำหรับ photoImage
+      const { url, id } = await handlePhotoUpload(formData.photoImage);
+      imageId = id;
+      // ใช้ URL ของรูปภาพและ ID ที่ได้จากการอัปโหลดใน formData หรืออื่น ๆ
+      formData.photoImage = url;
+      console.log("Uploaded Image URL:", url);
+      console.log("Uploaded Image ID:", id);
     }
-    const userData = {
+    const base64Image = localStorage.getItem('cardIdImage');
+    const cardIdImageObject = await uploadImageFromBase64(base64Image)
+    if (cardIdImageObject) {
+      cardId_id = cardIdImageObject.id;
+      formData.cardIdImage = cardIdImageObject.url;
+    }
+
+      const userData = {
       username: formData.username || "cook" + userId ,
       email: "cook" + userId + "@cook.com", // Assuming email is the same as username in this example
       password: "cookcook",
       lineId: userId,
       userType: "customer",
-      photoImage: uploadedImageObject ? uploadedImageObject : null,
-      // photoImage: uploadedImageObject, // Add the uploaded image URL if it exists
+      photoImage: imageId === 0 ? null : imageId,
+      cardIdImage: cardId_id === 0 ? null : cardId_id,
       fullName: formData.fullName,
       telNumber: formData.telNumber,
       gender: formData.gender,
@@ -136,38 +140,37 @@ function Register() {
       cardID: formData.cardID,
     };
     console.log("userData before: ", userData);
-    // console.log("token before: ", token);
-    // Call the createUser function to send the formData to the API
-    // Call the createUser function to send the formData to the API
+
     const response = await createUser(userData);
     console.log("response: ", response);
-    console.log("response: ", response.jwt);
-
-    if (response) {
+    console.log("response tok: ", response.jwt);
+    // console.log("response ok: ", response.ok);
+    if (response.jwt !== undefined) {
+      console.log("User registered successfully!");
+      setShowModal(true);
       const token = response.jwt;
       localStorage.setItem('token', token);
-      console.log('Register Token saved to localStorage:', token);
-      // Assuming that the API response contains an "id" field if registration was successful
-      alert("User registered successfully!");
-      navigate("/home"); // Redirect to home after successful registration
     } else {
       throw new Error('User registration failed.');
     }
-  };
-
-  const handleImageCapture = (imageSrc) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      photoImage: imageSrc,
-    }));
   };
 
   if (loading) return <LoadingSpinner />; // Loading state
   if (error) return <p>Error: {error}</p>; // Error state
 
   return (
+    <>
+      { showModal &&
+      <>
+        <Alert
+          title="User registered successfully!"
+          message={`Welcome, ${formData.username}! We’re so happy to have you on Cook Website.`}
+          path="/home"
+        />
+
+      </>
+      }
     <ThemeProvider theme={theme}>
-      {/* <Header /> */}
       <FileUpload
         photoImage={formData.photoImage} // Pass the selected photo to FileUpload component
         onFileChange={handleFileChange} // Pass handleFileChange function
@@ -210,10 +213,11 @@ function Register() {
             </div>
             <div className="w-full px-2 mt-4">
               <FormControl>
-                <FormLabel>เพศ</FormLabel>
+                <FormLabel>เพศ*</FormLabel>
                 <RadioGroup
                   row
                   name="gender"
+                  required
                   value={formData.gender}
                   onChange={handleInputChange}
                 >
@@ -255,6 +259,9 @@ function Register() {
               />
             </div>
             <div className="w-full px-2 mt-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+                ถ่ายรูปตนเองพร้อมถือบัตรประจำตัวประชาชน<span className="text-red-500">*</span>
+              </label>
               <WebcamCapture onCapture={handleImageCapture} />
             </div>
           </div>
@@ -277,18 +284,21 @@ function Register() {
           </span>
         </div>
         <div className="container mx-auto px-4">
-          <button
-            type="submit"
-            disabled={!isFormValid}
-            className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white ${
-              isFormValid ? "bg-green-500" : "bg-slate-300"
-            }`}
-          >
-            ลงทะเบียน
-          </button>
+        <button
+          type="submit"
+          disabled={!isFormValid || !hasImage || showModal}
+          className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white font-bold transition duration-300 ${
+            isFormValid && hasImage && !showModal
+              ? "bg-green-500 hover:bg-green-600 active:bg-green-700"
+              : "bg-slate-300 cursor-not-allowed"
+          } ${isFormValid && hasImage && !showModal ? "cursor-pointer" : ""}`}
+        >
+          ลงทะเบียน
+        </button>
         </div>
       </form>
     </ThemeProvider>
+    </>
   );
 }
 

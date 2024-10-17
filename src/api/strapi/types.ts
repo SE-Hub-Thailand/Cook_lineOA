@@ -40,7 +40,7 @@ export interface User {
     gender: string;
     address: string;
     cardID: string;
-    photoImage: Image;
+    photoImage: File;
     telNumber: string;
     point: number;
 }

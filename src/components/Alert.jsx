@@ -1,22 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom'; // นำ useNavigate เข้ามาใช้
 
-const Alert = ({ title, message }) => {
+const Alert = ({ title, message, path }) => {
 //   const [isVisible, setIsVisible] = useState(true); // กำหนดสถานะแสดงผลเริ่มต้นเป็น true
   const navigate = useNavigate(); // เรียกใช้ useNavigate
 
-//   const handleClose = () => {
-//     setIsVisible(false); // เมื่อกดปุ่มกากบาทจะซ่อน Alert
-// 	closeModal();
-//     navigate(0); // ย้อนกลับไปหน้าก่อนหน้า
-//   };
-
-//   if (!isVisible) return null; // ถ้าไม่แสดงผล (isVisible = false) ให้ return null
   const [showModal, setShowModal] = useState(true); // Modal is initially visible
-
+  
+  useEffect(() => {
+    if (showModal) {
+      // เลื่อนหน้าจอขึ้นไปบนสุดเมื่อแสดงผล Alert
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showModal]);
   const closeModal = () => {
     setShowModal(false); // Close modal on button click
-	navigate(0); 
+	navigate(path);
   };
 
   return (
@@ -52,5 +52,16 @@ const Alert = ({ title, message }) => {
       )}
     </>
   );
-}
+};
+
+Alert.propTypes = {
+title: PropTypes.string.isRequired, // กำหนดให้ title ต้องเป็น string และต้องมีค่าเสมอ
+message: PropTypes.string.isRequired, // กำหนดให้ message ต้องเป็น string และต้องมีค่าเสมอ
+path: PropTypes.string, // path สามารถมีหรือไม่มีก็ได้ ดังนั้นไม่ต้องใส่ .isRequired
+};
+
+Alert.defaultProps = {
+path: '', // กำหนดค่า default ให้ path เป็น string ว่าง (ในกรณีที่ไม่ต้องการนำทาง)
+};
+
 export default Alert;

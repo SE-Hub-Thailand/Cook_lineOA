@@ -35,10 +35,10 @@ export const createRedeem = async (redeemData: Redeem, token: string): Promise<R
     }
 };
 
-export const getAllRedeem = async (id: string, token: string): Promise<Redeem[]> => {
+export const getAllRedeems = async (id: string, token: string): Promise<Redeem[]> => {
     try {
         // URL now includes id filter
-        const url = `${API_URL}/api/redeem?filters[user][id][$eq]=${id}&populate=user&populate=shop&populate=shop.image`;
+        const url = `${API_URL}/api/redeems?filters[customer][id][$eq]=${id}&populate=user&populate=shop&populate=shop.image`;
         console.log("heloooo");
         const response = await fetch(url, {
             method: 'GET',
@@ -57,7 +57,7 @@ export const getAllRedeem = async (id: string, token: string): Promise<Redeem[]>
         const data = await response.json();
 
         // Map the response data to an array of HistoryMachine objects
-        const points: Redeem[] = data.data
+        const redeems: Redeem[] = data.data
             // .filter((item: any) => item.attributes.status === 'active') // Filter by status "active"
             .map((item: any) => ({
                 id: item.id,
@@ -70,7 +70,7 @@ export const getAllRedeem = async (id: string, token: string): Promise<Redeem[]>
                     userType: item.attributes.customer?.data?.attributes?.userType || '',
 					point: item.attributes.customer?.data?.attributes?.point || 0,
                 },
-                totalPoint: item.attributes.totalPoint,
+                totalPoints: item.attributes.totalPoints,
 				status: item.attributes.status,
 				qrCode: item.attributes.qrCode,
 				productJsonArray: item.attributes.productJsonArray,
@@ -82,7 +82,11 @@ export const getAllRedeem = async (id: string, token: string): Promise<Redeem[]>
 				date: item.attributes.date,
 				time: item.attributes.time,
             }));
-       return points;
+            console.log("heloooo"); // Log to inspect the structure of the response
+            console.log('length: ', redeems.length); // Log to inspect the structure of the response
+            console.log('redeem in gettt: ', redeems[0]); // Log to inspect the structure of the response
+            console.log('redeem in gettt[0]: ', redeems);
+            return redeems;
     } catch (error) {
         console.error('Error fetching recycle machines:', error.message);
         throw error;

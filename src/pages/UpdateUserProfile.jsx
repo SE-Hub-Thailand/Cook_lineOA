@@ -9,16 +9,25 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
-import WebcamCapture from "../components/WebcamCapture.jsx";
-import { getUser, updateUser } from "../api/strapi/userApi"; // Import updateUser function
-import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
+import { updateUser } from "../api/strapi/userApi"; // Import updateUser function
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
+import WebcamCapture from "../components/WebcamCapture.jsx";
+import Alert from "../components/Alert.jsx";
+import { handlePhotoUpload, uploadImageFromBase64 } from "../api/strapi/uploadApi";
 
 function UpdateUserProfile() {
-  const userId = import.meta.env.VITE_USER_ID;
+  const userId = localStorage.getItem('lineId');
   // const token = import.meta.env.VITE_TOKEN_TEST;
   const token = localStorage.getItem('token');
   const API_URL = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate(); // Initialize useNavigate for redirection
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [hasImage, setHasImage] = useState(false);  // สถานะว่ามีภาพหรือไม่
+  const [showModal, setShowModal] = useState(false);
+  const [fileChange, setFileChange] = useState(false);
 
   const theme = createTheme({
     typography: {
@@ -26,39 +35,46 @@ function UpdateUserProfile() {
     },
   });
 
+    // Fetch user data and set the formData
+    useEffect(() => {
+      const fetchUser = async () => {
+        try {
+          setLoading(true);
+          // const userData = await getUser(userId, token);
+          const userData = JSON.parse(localStorage.getItem('user'));
+          setUser(userData);
+          setFormData({
+            username: userData.username || "",
+            fullName: userData.fullName || "",
+            telNumber: userData.telNumber || "",
+            gender: userData.gender || "",
+            address: userData.address || "",
+            cardID: userData.cardID || "",
+            photoImage: userData.photoImage || "", // Assuming the image is not fetched here
+            cardIdImage: userData.cardIdImage || "",
+          });
+          setLoading(false);
+        } catch (error) {
+          console.error("Error fetching users:", error);
+          setError(error.message);
+          setLoading(false);
+        }
+      };
+      fetchUser();
+    }, [userId, token]);
+
   // Initial formData state is set with empty fields
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    fullName: "",
-    telNumber: "",
-    gender: "",
-    address: "",
-    cardID: "",
-    photoImage: "",
+    username: user?.username || "",
+		fullName: user?.fullName || "",
+    telNumber: user?.telNumber || "",
+    gender: user?.gender || "",
+    address: user?.address || "",
+    cardID: user?.cardID || "",
+    photoImage: user?.photoImage || "", // Assuming the image is not fetched here
+    cardIdImage: user?.cardIdImage || "",
     checkedOne: false,
   });
-  const navigate = useNavigate(); // Initialize useNavigate for redirection
-  const [isFormValid, setIsFormValid] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-    // Function to handle file change from FileUpload component
-	const handleFileChange = (file) => {
-		setFormData((prevData) => ({
-		  ...prevData,
-		  photoImage: file, // Store the file in formData
-		}));
-	  };
-
-  const handleInputChange = (e) => {
-    const { id, name, value, type, checked } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [id || name]: type === "checkbox" ? checked : value,
-    }));
-  };
 
   useEffect(() => {
     const {
@@ -78,101 +94,103 @@ function UpdateUserProfile() {
         gender &&
         address &&
         cardID &&
+        // hasImage &&
         checkedOne
     );
   }, [formData]);
 
-  // Fetch user data and set the formData
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const userData = await getUser(userId, token);
-        setUser(userData);
-        setFormData({
-          username: userData.username || "",
-		//   email: userData.email || "",
-        //   password: userData.password || "cookcook", // Leave password empty for security reasons
-          fullName: userData.fullName || "",
-          telNumber: userData.telNumber || "",
-          gender: userData.gender || "",
-          address: userData.address || "",
-          cardID: userData.cardID || "",
-        //   photoImage: userData.photoImage || "", // Assuming the image is not fetched here
-          checkedOne: false, // Assume consent is not automatically checked
-        });
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setError(error.message);
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, [userId, token]);
-
-  const createPhotoImageObject = (uploadedImageData) => {
-	return {
-	  id: uploadedImageData.id,
-	  name: uploadedImageData.name,
-	  alternativeText: uploadedImageData.alternativeText || null,
-	  caption: uploadedImageData.caption || null,
-	  width: uploadedImageData.width,
-	  height: uploadedImageData.height,
-	  formats: uploadedImageData.formats, // If formats are available
-	  hash: uploadedImageData.hash,
-	  ext: uploadedImageData.ext,
-	  mime: uploadedImageData.mime,
-	  size: uploadedImageData.size,
-	  url: uploadedImageData.url,
-	  provider: uploadedImageData.provider,
-	  createdAt: uploadedImageData.createdAt,
-	  updatedAt: uploadedImageData.updatedAt,
-	};
+  // Function to handle file change from FileUpload component
+  const handleFileChange = (file) => {
+    console.log("file change: ", file);
+    setFileChange(true);
+    setFormData((prevData) => ({
+      ...prevData,
+      photoImage: file, // Store the file in formData
+    }));
   };
+
+  const handleInputChange = (e) => {
+    const { id, name, value, type, checked } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id || name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    try {
-      let uploadedImageObject = null;
-
-      // อัปโหลดรูปภาพก่อน ถ้ามีรูปภาพที่จะอัปโหลด
-      if (formData.photoImage) {
-        const uploadedImageData = await uploadImage(formData.photoImage);
-        uploadedImageObject = createPhotoImageObject(uploadedImageData); // สร้าง object สำหรับ photoImage
+    console.log("formData: ", formData);
+    // อัปโหลดรูปภาพก่อน ถ้ามีรูปภาพที่จะอัปโหลด
+    let imageId, cardId_id = 0;
+    if (fileChange && formData.photoImage) {
+      const { url, id } = await handlePhotoUpload(formData.photoImage);
+      imageId = id;
+      // ใช้ URL ของรูปภาพและ ID ที่ได้จากการอัปโหลดใน formData หรืออื่น ๆ
+      formData.photoImage = url;
+      console.log("Uploaded Image URL:", url);
+      console.log("Uploaded Image ID:", id);
+    }
+    if (hasImage) {
+      const base64Image = localStorage.getItem('cardIdImage');
+      const cardIdImageObject = await uploadImageFromBase64(base64Image)
+      if (cardIdImageObject) {
+        cardId_id = cardIdImageObject.id;
+        formData.cardIdImage = cardIdImageObject.url;
       }
+    }
+
       const userData = {
-        username: formData.username,
-        email: formData.email, // Assuming email is the same as username in this example
-        password: formData.password,
-        photoImage: uploadedImageObject, // Add the uploaded image URL if it exists
-        fullName: formData.fullName,
-        telNumber: formData.telNumber,
-        gender: formData.gender,
-        address: formData.address,
-        cardID: formData.cardID,
-      };
-      // Call the updateUser function to send the updated formData to the API
-      await updateUser(user.id, userData, token);
-      alert("User data updated successfully!");
-	//   navigate("/home");
-    } catch (error) {
-      console.error("Error updating user data:", error);
-      alert("Error updating user data");
+      username: formData.username ,
+      photoImage: imageId === 0 ? user?.photoImage : imageId,
+      cardIdImage: !hasImage ? user?.cardIdImage : cardId_id,
+      fullName: formData.fullName,
+      telNumber: formData.telNumber,
+      gender: formData.gender,
+      address: formData.address,
+      cardID: formData.cardID,
+    };
+    console.log("userData before: ", userData);
+
+    const response = await updateUser(user?.id, userData, token);
+    console.log("response: ", response);
+    console.log("response tok: ", response.jwt);
+    // console.log("response ok: ", response.ok);
+    if (response) {
+      console.log("User updated successfully!");
+      setShowModal(true);
+    } else {
+      throw new Error('User update failed.');
     }
   };
 
   const handleImageCapture = (imageSrc) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      photoImage: imageSrc,
-    }));
+    console.log("imageSrc: ", imageSrc);
+    if (imageSrc) {
+      setHasImage(true);  // มีภาพอยู่
+      // setFormData((prevData) => ({
+      //   ...prevData,
+      //   cardIdImage: imageSrc,
+      // }));
+    } else {
+      setHasImage(false);  // ไม่มีภาพ
+    }
   };
 
   if (loading) return <LoadingSpinner />; // Loading state
   if (error) return <p>Error: {error}</p>; // Error state
 
   return (
+    <>
+    { showModal &&
+      <>
+        <Alert
+          title="User data updated successfully!"
+          message={`Hi, ${formData.username}! Your information has been updated successfully.`}
+          path="/home"
+        />
+      </>
+      }
     <ThemeProvider theme={theme}>
       <Header />
 	  <FileUpload
@@ -263,6 +281,9 @@ function UpdateUserProfile() {
               />
             </div>
             <div className="w-full px-2 mt-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                ถ่ายรูปตนเองพร้อมถือบัตรประจำตัวประชาชน
+              </label>
               <WebcamCapture onCapture={handleImageCapture} />
             </div>
           </div>
@@ -287,16 +308,19 @@ function UpdateUserProfile() {
         <div className="container mx-auto px-4">
           <button
             type="submit"
-            disabled={!isFormValid}
-            className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white ${
-              isFormValid ? "bg-green-500" : "bg-slate-300"
-            }`}
+            disabled={!isFormValid || showModal}
+            className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white font-bold transition duration-300 ${
+              isFormValid && !showModal
+                ? "bg-green-500 hover:bg-green-600 active:bg-green-700"
+                : "bg-slate-300 cursor-not-allowed"
+            } ${isFormValid && !showModal ? "cursor-pointer" : ""}`}
           >
             บันทึกข้อมูล
           </button>
         </div>
       </form>
     </ThemeProvider>
+    </>
   );
 }
 
