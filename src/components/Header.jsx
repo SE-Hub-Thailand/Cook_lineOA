@@ -176,10 +176,10 @@ function Header() {
       </nav>
 
       {showModal &&
-        <Alert title="No items in the cart." message="Please add some products to proceed." path="0" closeModal={() => setShowModal(false)} />
+        <Alert title="No items in the cart." message="Please add some products to proceed." closeModal={() => setShowModal(false)} />
       }
       {showModal2 &&
-        <Alert title="No Point Redemption Records." message="Please make a redemption to view your history." path="0" closeModal={() => setShowModal2(false)} />
+        <Alert title="No Point Redemption Records." message="Please make a redemption to view your history." closeModal={() => setShowModal2(false)} />
       }
 
     </>

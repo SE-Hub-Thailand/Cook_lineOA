@@ -7,7 +7,7 @@ const Alert = ({ title, message, path }) => {
   const navigate = useNavigate(); // เรียกใช้ useNavigate
 
   const [showModal, setShowModal] = useState(true); // Modal is initially visible
-  
+
   useEffect(() => {
     if (showModal) {
       // เลื่อนหน้าจอขึ้นไปบนสุดเมื่อแสดงผล Alert
@@ -16,7 +16,10 @@ const Alert = ({ title, message, path }) => {
   }, [showModal]);
   const closeModal = () => {
     setShowModal(false); // Close modal on button click
-	navigate(path);
+	if (path)
+		navigate(path);
+	else
+		navigate(0);
   };
 
   return (
