@@ -16,6 +16,7 @@ import Alert from "../components/Alert.jsx";
 // import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
 import { handlePhotoUpload, uploadImageFromBase64 } from "../api/strapi/uploadApi";
+
 function Register() {
   const displayName = localStorage.getItem('displayName');
   const pictureUrl = localStorage.getItem('pictureUrl');
@@ -28,6 +29,12 @@ function Register() {
       fontFamily: "Sarabun",
     },
   });
+  const navigate = useNavigate(); // Initialize useNavigate for redirection
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [hasImage, setHasImage] = useState(false);  // สถานะว่ามีภาพหรือไม่
 
   // Initial formData state is set with empty fields
   const [formData, setFormData] = useState({
@@ -39,47 +46,9 @@ function Register() {
     address: "",
     cardID: "",
     cardIdImage: "",
-    photoImage: pictureUrl,
+    photoImage: pictureUrl? pictureUrl : "",
     checkedOne: false,
   });
-
-  const navigate = useNavigate(); // Initialize useNavigate for redirection
-  const [isFormValid, setIsFormValid] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-
-  // Function to handle file change from FileUpload component
-  const handleFileChange = (file) => {
-    console.log("file change: ", file);
-    setFormData((prevData) => ({
-      ...prevData,
-      photoImage: file, // Store the file in formData
-    }));
-  };
-  const [hasImage, setHasImage] = useState(false);  // สถานะว่ามีภาพหรือไม่
-
-  const handleImageCapture = (imageSrc) => {
-    console.log("imageSrc: ", imageSrc);
-    if (imageSrc) {
-      setHasImage(true);  // มีภาพอยู่
-      // setFormData((prevData) => ({
-      //   ...prevData,
-      //   cardIdImage: imageSrc,
-      // }));
-    } else {
-      setHasImage(false);  // ไม่มีภาพ
-    }
-  };
-// ]
-
-  const handleInputChange = (e) => {
-    const { id, name, value, type, checked } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [id || name]: type === "checkbox" ? checked : value,
-    }));
-  };
 
   useEffect(() => {
     const {
@@ -104,6 +73,38 @@ function Register() {
         checkedOne
     );
   }, [formData]);
+
+  // Function to handle file change from FileUpload component
+  const handleFileChange = (file) => {
+    console.log("file change: ", file);
+    setFormData((prevData) => ({
+      ...prevData,
+      photoImage: file, // Store the file in formData
+    }));
+  };
+
+  const handleImageCapture = (imageSrc) => {
+    console.log("imageSrc: ", imageSrc);
+    if (imageSrc) {
+      setHasImage(true);  // มีภาพอยู่
+      // setFormData((prevData) => ({
+      //   ...prevData,
+      //   cardIdImage: imageSrc,
+      // }));
+    } else {
+      setHasImage(false);  // ไม่มีภาพ
+    }
+  };
+// ]
+
+  const handleInputChange = (e) => {
+    const { id, name, value, type, checked } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id || name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();

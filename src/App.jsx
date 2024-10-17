@@ -11,7 +11,6 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const { error, isLoggedIn, isReady, liff } = useLiff();
-  const loginButtonRef = useRef(null);
   const navigate = useNavigate();
 
   // Initialize LIFF and login or register the user

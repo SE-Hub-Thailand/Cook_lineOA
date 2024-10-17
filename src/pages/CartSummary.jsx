@@ -201,6 +201,7 @@ const CartSummary = () => {
                     แลกแต้ม
                   </button> */}
                   <RedeemPointsModal
+                    point={totalPointsSum}
                     isOpen={isRedeemModalOpen}
                     onClose={handleCloseRedeemModal}
                     onConfirm={handleConfirm}

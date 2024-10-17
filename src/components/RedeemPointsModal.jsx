@@ -1,6 +1,6 @@
 import React from 'react';
 
-const RedeemPointsModal = ({ isOpen, onClose, onConfirm }) => {
+const RedeemPointsModal = ({ point, isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
 
   return (
@@ -44,7 +44,7 @@ const RedeemPointsModal = ({ isOpen, onClose, onConfirm }) => {
           </button>
         </div>
         <p className="text-gray-600 mb-6">
-          ท่านกำลังจะแลก 40 คะแนน กรุณากด OK เพื่อยืนยันให้ระบบทำการแลกสินค้าและหักแต้ม
+          ท่านกำลังจะแลก {point} คะแนน กรุณากด OK เพื่อยืนยันให้ระบบทำการแลกสินค้าและหักแต้ม
         </p>
         <div className="flex justify-end space-x-4">
           <button
