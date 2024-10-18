@@ -56,18 +56,19 @@ const CartSummary = () => {
 
     // จัดรูปแบบวันที่และเวลาในรูปแบบ DD/MM/YYYY HH:mm AM/PM
     const now = new Date();
+  now.setHours(now.getHours() + 7); // Adjust to Thai time zone (UTC+7)
 
-    const redeemData = {
-      customer: user?.id, // แก้ id ให้เป็น id ของลูกค้าที่ล็อกอิน
-      totalPoints: totalPointsSum,
-      qrCode: randomValue,
-      status: "pending",
-      // invoice: "1",
-      productJsonArray: JSON.stringify(cart2),
-      shop: localStorage.getItem('shopId'),
-      date: now.toISOString().split('T')[0], // ได้ค่าเฉพาะวันที่ เช่น 16/10/2024
-      time: now.toISOString().split('T')[1].split('.')[0] // ได้ค่าเฉพาะเวลา เช่น 12:34 PM
-    };
+  const redeemData = {
+    customer: user?.id, // แก้ id ให้เป็น id ของลูกค้าที่ล็อกอิน
+    totalPoints: totalPointsSum,
+    qrCode: randomValue,
+    status: "pending",
+    // invoice: "1",
+    productJsonArray: JSON.stringify(cart2),
+    shop: localStorage.getItem('shopId'),
+    date: now.toISOString().split('T')[0], // ได้ค่าเฉพาะวันที่ เช่น 16/10/2024
+    time: now.toISOString().split('T')[1].split('.')[0] // ได้ค่าเฉพาะเวลา เช่น 12:34 PM
+  };
     const payload = {
       data: redeemData // Wrap redeemData inside "data"
     };
