@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import logo from "../assets/images/Group.png";
 import "./style.css";
 import React, { useState, useEffect, useContext } from "react";
+import { useLiff } from 'react-liff';
 import { BsBasket2 } from "react-icons/bs";
 import { BsCoin } from "react-icons/bs";
 import { getUser } from "../api/strapi/userApi"; // Import getUser function
@@ -32,7 +33,7 @@ function Header() {
   const userId = localStorage.getItem('lineId');
   const [showModal, setShowModal] = useState(false);
   const [showModal2, setShowModal2] = useState(false);
-
+  const {liff } = useLiff();
   // const token = import.meta.env.VITE_TOKEN_TEST;
   const token = localStorage.getItem('token');
   const [user, setUser] = useState(null);
@@ -100,6 +101,14 @@ function Header() {
       navigate(`/history-point/${user?.id}`);
   };
 
+  const handleLogout = () => {
+    if (liff) {
+        liff.logout();
+    }
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+    navigate('/'); // Redirect to login page
+  };
   // Loading and Error handling
   if (loading) return <LoadingSpinner />
   if (error) return <p>Error: {error}</p>;
@@ -165,6 +174,18 @@ function Header() {
                 }}
               >
                 ประวัติการใช้บริการตู้
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                onClick={handleLogout}
+                className="font-semibold hover:text-yellow-hard"
+                to={'/'}
+                style={({ isActive }) => {
+                  return { color: isActive ? "yellow-hard" : "" };
+                }}
+              >
+                ออกจากระบบ
               </NavLink>
             </li>
           </ul>
