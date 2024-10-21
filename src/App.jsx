@@ -45,19 +45,21 @@ const App = () => {
                 localStorage.setItem('lineId', lineId);
 
                 // Set display name from profile
-                setDisplayName(profile.displayName + "xxxx");
+                // setDisplayName(profile.displayName + "xxxx");
                 const response = await loginWithLineId(lineId);
+                
                 console.log('respons: ', response.jwt);
                 console.log('jwt: ', response.jwt);
                 if(!response){
                   // This line is login fail
                   // This line we will redirect to sign up page
                   console.log("Login failed. Redirecting to sign up page...");;
-                  navigate('/pdpa_customer');
+                  navigate('/register');
                   // return;
                 }else{
                   const token = response.jwt; // Access the token from the response
                   localStorage.setItem('token', token);
+
                   console.log('Token saved to localStorage:', token);
                   // This line is login success
                   console.log("Login successful. Redirecting to app...");
