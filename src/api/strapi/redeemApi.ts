@@ -23,7 +23,7 @@ export const createRedeem = async (redeemData: Redeem, token: string): Promise<R
         if (!response.ok) {
             const errorData = await response.json();
             console.error('Error:', errorData);
-            alert('Error: ' + errorData.error.message);
+            // alert('Error: ' + errorData.error.message);
             throw new Error(`Request failed with status ${response.status}`);
         }
 
