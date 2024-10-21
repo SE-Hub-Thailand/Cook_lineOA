@@ -5,12 +5,13 @@ import coin from "../assets/images/coins.png";
 import Container from '@mui/material/Container';
 import BackgroundPoint from '../assets/images/fruit.png';
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 // import { getAllHistoryPoints } from "../api/strapi/historyPointApi";
 import { convertDateTime } from '../components/ConvertDateTime';
 import LoadingSpinner from '../components/LoadingSpinner';
 import AlertNoData from "../components/AlertNoData";
 import { getAllRedeems } from "../api/strapi/redeemApi";
+
 export default function HistoryPoint() {
   console.log("heloooo in HistoryPoint");
   const API_URL = import.meta.env.VITE_API_URL;
@@ -26,8 +27,12 @@ export default function HistoryPoint() {
         setLoading(true);
         console.log("Fetching history points...");
         const pointsData = await getAllRedeems(id, token);
+        localStorage.setItem('redeem', JSON.stringify(pointsData));
         // getAllHistoryPoints(id, token);
         console.log("pointsData: ", pointsData);
+        console.log("pointsData.length: ", pointsData.length);
+        console.log("json parse Point: ", JSON.parse(localStorage.getItem('redeem')));
+
         const userData = JSON.parse(localStorage.getItem('user'));
         setUser(userData);
         // const user = localStorage.getItem('user');
@@ -63,6 +68,7 @@ export default function HistoryPoint() {
   }
 
   // ถ้ามีข้อมูล ให้แสดงเนื้อหา
+
   return (
     <>
       <Header />
@@ -75,51 +81,54 @@ export default function HistoryPoint() {
         <p className="text-center mt-10 text-2xl font-semibold">ประวัติการแลกแต้ม</p>
 
         {points.map((point, index) => (
-          <div
+          <Link
+            // to={`/redeem-details/${point.id}`} // กำหนดลิงก์ไปยังหน้าที่ต้องการ พร้อมกับ point id
             key={index}
-            className="relative shadow-inner w-full max-w-md mx-auto h-auto bg-white mt-10 rounded-lg mb-6 p-4"
           >
-          {/* กล่องสถานะที่มุมขวาบน */}
-          <div
-            className={`absolute top-0 right-0 mt-2 mr-2 px-4 py-1 rounded-full text-white text-sm font-semibold ${
-              point.status === "pending"
-                ? "bg-yellow-400"
-                : point.status === "approved"
-                ? "bg-green-500"
-                : "bg-red-500"
-            }`}
-          >
-            {point.status === "pending"
-              ? "Pending"
-              : point.status === "approve"
-              ? "Approved"
-              : "Rejected"}
-          </div>
+            <div
+              className="relative shadow-inner w-full max-w-md mx-auto h-auto bg-white mt-10 rounded-lg mb-6 p-4 cursor-pointer"
+            >
+              {/* กล่องสถานะที่มุมขวาบน */}
+              <div
+                className={`absolute top-0 right-0 mt-2 mr-2 px-4 py-1 rounded-full text-white text-sm font-semibold ${
+                  point.status === "pending"
+                    ? "bg-yellow-400"
+                    : point.status === "approved"
+                    ? "bg-green-500"
+                    : "bg-red-500"
+                }`}
+              >
+                {point.status === "pending"
+                  ? "Pending"
+                  : point.status === "approved"
+                  ? "Approved"
+                  : "Rejected"}
+              </div>
 
-          <div className="flex justify-center">
-            <img
-              src={
-                point.shop?.image?.data?.attributes?.url
-                  ? `${API_URL}${point.shop.image.data.attributes.url}`
-                  : BackgroundPoint
-              }
-              alt={`ร้าน ${point.shop?.name}`}
-              className="rounded-full w-24 h-24 sm:w-32 sm:h-32 object-cover"
-            />
-          </div>
-          <div className="flex justify-center mt-4 text-lg sm:text-xl font-semibold">
-            <p>{point.shop.name}</p>
-          </div>
-          <div className="grid grid-cols-[4fr_2fr_3fr] mt-10 text-lg sm:text-xl">
-            <p className="pl-4 sm:pl-8">แลกแต้มทั้งหมด</p>
-            <p className="text-center">{point.totalPoints}</p>
-            <p className="pr-4 sm:pr-8 text-right">แต้ม</p>
-          </div>
-          <p className="mt-6 text-center text-sm sm:text-lg">
-            {convertDateTime(point.date, point.time)}
-          </p>
-        </div>
-
+              <div className="flex justify-center">
+                <img
+                  src={
+                    point.shop?.image?.data?.attributes?.url
+                      ? `${API_URL}${point.shop.image.data.attributes.url}`
+                      : BackgroundPoint
+                  }
+                  alt={`ร้าน ${point.shop?.name}`}
+                  className="rounded-full w-24 h-24 sm:w-32 sm:h-32 object-cover"
+                />
+              </div>
+              <div className="flex justify-center mt-4 text-lg sm:text-xl font-semibold">
+                <p>{point.shop.name}</p>
+              </div>
+              <div className="grid grid-cols-[4fr_2fr_3fr] mt-10 text-lg sm:text-xl">
+                <p className="pl-4 sm:pl-8">แลกแต้มทั้งหมด</p>
+                <p className="text-center">{point.totalPoints}</p>
+                <p className="pr-4 sm:pr-8 text-right">แต้ม</p>
+              </div>
+              <p className="mt-6 text-center text-sm sm:text-lg">
+                {convertDateTime(point.date, point.time)}
+              </p>
+            </div>
+          </Link>
         ))}
       </Container>
     </>

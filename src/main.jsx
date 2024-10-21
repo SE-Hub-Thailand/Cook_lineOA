@@ -40,6 +40,7 @@ import UpdateUserProfile from './pages/UpdateUserProfile.jsx';
 import CartSummary from './pages/CartSummary.jsx';
 import LoadingSpinner from './components/LoadingSpinner';
 import PDPA_Customer from './pages/PDPA_Customer.jsx';
+import RedeemDetails from './pages/RedeemDetails.jsx';
 // import UpdateProfileStore from './pages/partner/UpdateProfileStore.jsx';
 
 const liffId = import.meta.env.VITE_LIFF_ID;
@@ -110,6 +111,10 @@ const router = createBrowserRouter([
     path: "/history-point/:id",
     element: <HistoryPoint />
   },
+  // {
+  //   path: "/redeem-details/:id",
+  //   element: <RedeemDetails />
+  // },
   {
     path: "/history-service-machine/:id",
     element: <HistoryServiceMachine />
