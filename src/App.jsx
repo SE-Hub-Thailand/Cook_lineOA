@@ -7,7 +7,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 // import Home from './pages/Home';
 const App = () => {
   const navigate = useNavigate();
-  const { liff, error } = useLiff();
+  const {isLoggedIn, liff, error } = useLiff();
   const [loading, setLoading] = useState(true);
   const [displayName, setDisplayName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
