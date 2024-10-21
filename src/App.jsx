@@ -6,13 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from './components/LoadingSpinner';
 // import Home from './pages/Home';
 
-// const LiffCustomer = import.meta.env.VITE_LIFF_ID;
+const LiffCustomer = import.meta.env.VITE_LIFF_ID;
 
 const App = () => {
     const navigate = useNavigate();
-    const { isLoggedIn, liff, error } = useLiff();
+    const {liff, error } = useLiff();
     const [loading, setLoading] = useState(true);
-    const [displayName, setDisplayName] = useState('');
+    // const [displayName, setDisplayName] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
@@ -33,7 +33,7 @@ const App = () => {
                 }
 
                 // Initialize LIFF
-                // await liff.init({ liffId: LiffCustomer });
+                await liff.init({ liffId: LiffCustomer });
                 // console.log("LIFF initialized successfully.");
 
                 if (liff.isLoggedIn()) {
@@ -46,49 +46,43 @@ const App = () => {
                   localStorage.setItem('pictureUrl', profile.pictureUrl);
                   localStorage.setItem('lineId', lineId);
                   // Set display name from profile
-                  setDisplayName(profile.displayName + "xxxx");
+                  // setDisplayName(profile.displayName + "xxxx");
                   const response = await loginWithLineId(lineId);
-                  console.log('respons: ', response.jwt);
-                  console.log('jwt: ', response.jwt);
                   if(!response){
                     // This line is login fail
                     console.log("Login failed. Redirecting to sign up page...");
-                    navigate('/register/');
+                    navigate('/register');
                     // return;
                   }else{
                     const token = response.jwt; // Access the token from the response
                     localStorage.setItem('token', token);
+                    console.log('respons: ', response.jwt);
+                    console.log('jwt: ', response.jwt);
                     console.log('Token saved to localStorage:', token);
                     // This line is login success
                     console.log("Login successful. Redirecting to app...");
                     navigate('/home'); // Redirect to the App component
-
                   }
                 } else {
                     liff.login();
                 }
-            } catch (err) {
-                console.error('Initialization or login error:', err);
+            } catch (errorMessage) {
+                console.error('Initialization or login error:', errorMessage);
                 setErrorMessage('Initialization or login error. Please try again.');
             } finally {
                 setLoading(false);
             }
         };
 
+        // initializeLiff();
+        // if (isLoggedIn) {
+        //   setLoading(true);
+        // }
         initializeLiff();
     }, [liff, navigate]);
 
-    const handleLogout = () => {
-        if (liff) {
-            liff.logout();
-        }
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
-        navigate('/'); // Redirect to login page
-    };
-
     if (loading) {
-        return <div className="App"><p>Loading...</p></div>;
+        return <div className="App"><LoadingSpinner /></div>;
     }
 
     if (error) {
