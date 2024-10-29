@@ -1,4 +1,5 @@
 import { HistoryPoint } from './types'; // Adjust the import path as necessary
+import { AlertNoData } from '../../components/AlertNoData';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:1400';  // Fallback to default if env variable not set
 
@@ -6,7 +7,7 @@ export const getAllHistoryPoints = async (id: string, token: string): Promise<Hi
     try {
         // URL now includes id filter
         const url = `${API_URL}/api/history-point?filters[user][id][$eq]=${id}&populate=user&populate=shop&populate=shop.image`;
-
+        console.log("heloooo");
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -46,7 +47,9 @@ export const getAllHistoryPoints = async (id: string, token: string): Promise<Hi
                     image: item.attributes.shop?.data?.attributes?.image || '',
 				},
             }));
-        console.log('recycleMachines in get: ', points); // Log to inspect the structure of the response
+        console.log("heloooo"); // Log to inspect the structure of the response
+        console.log('length: ', points.length); // Log to inspect the structure of the response
+        console.log('recycleMachines in gettt: ', points[0]); // Log to inspect the structure of the response
         return points;
     } catch (error) {
         console.error('Error fetching recycle machines:', error.message);

@@ -7,7 +7,7 @@ import smartphone from '../assets/images/smartphone.png';
 export default function ContactUs() {
     return(
         <>
-            <Header />
+            {/* <Header /> */}
             <Container maxWidth="sm">
                 <p className="text-center mt-16 text-2xl">ติดต่อเรา</p>
                 <div className="w-full h-96 bg-white rounded-md inner-shadow mt-10 p-5">
@@ -18,7 +18,7 @@ export default function ContactUs() {
                        <div >
                          <p className="contact-text mt-10">บริษัท ไมโครกรีนเทค จำกัด</p>
                        </div>
-                        
+
                     </div>
                     <div className="grid grid-cols-2">
                         <div>
@@ -37,7 +37,7 @@ export default function ContactUs() {
                         </div>
                     </div>
                 </div>
-                
+
             </Container>
         </>
     )

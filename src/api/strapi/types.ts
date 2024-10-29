@@ -1,3 +1,4 @@
+import { terSpacing } from './../../../node_modules/@mui/system/index.d';
 // src/api/strapi/types.ts
 
 import { N } from "vitest/dist/chunks/reporters.C_zwCd4j.js";
@@ -19,15 +20,27 @@ export interface Image {
     id: number;
     name: string;
   }
+
+  export interface Redeem {
+    customer: User;
+    totalPoints: number;
+    status: string;
+    qrCode: string;
+    productJsonArray: JSON;
+    shop: Shop;
+    date: string;
+    time: string;
+  }
 export interface User {
     id: number;
     username: string;
+    lineId: string;
     email: string;
     fullName: string;
     gender: string;
     address: string;
     cardID: string;
-    photoImage: Image;
+    photoImage: File;
     telNumber: string;
     point: number;
 }

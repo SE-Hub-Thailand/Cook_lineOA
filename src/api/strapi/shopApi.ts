@@ -8,8 +8,7 @@ export const getAllShops = async (token: string): Promise<Shop[]> => {
         throw new Error('No token provided. User must be authenticated.');
     }
     try {
-        // const API_URL = 'https://cookbstaging.careervio.com'
-        // /api/shops/?populate=image
+        // const API_URL = 'https://cookbstaging.careervio.com/api/shops/?populate=image
         const url = `${API_URL}/api/shops/?populate=image`;
         // console.log('url', url);
         const response = await fetch(url, {
@@ -40,6 +39,7 @@ export const getAllShops = async (token: string): Promise<Shop[]> => {
             publishedAt: item.attributes.publishedAt,
             bookBankNumber: item.attributes.bookBankNumber,
             bookBankImage: item.attributes.image,
+            image: item.attributes.image,
         }));
         console.log('shops', shops);
         return shops;
@@ -86,6 +86,7 @@ export const getShopById = async (id: string, token: string): Promise<Shop> => {
             createdAt: data.data.attributes.createdAt,
             updatedAt: data.data.attributes.updatedAt,
             publishedAt: data.data.attributes.publishedAt,
+            image: data.data.attributes.image,
             bookBankNumber: data.data.attributes.bookBankNumber,
             bookBankImage: data.data.attributes.image,
             user: {

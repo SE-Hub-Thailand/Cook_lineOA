@@ -77,11 +77,6 @@ export const registerUserWithImage = async (
             photoCardId: '',
             userType: 'customer',
         };
-        // const userData = {
-        //     username: username,
-        //     email: `cook${lineId}@cook.com`,
-        //     password: 'cookcook',
-        // };
 
         console.log('userData', userData);
 

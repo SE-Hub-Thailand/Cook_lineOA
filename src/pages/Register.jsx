@@ -1,6 +1,6 @@
 import React, { useState, useEffect} from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Header from "../components/Header.jsx";
+// import Header from "../components/Header.jsx";
 import FileUpload from "../components/FileUpload.jsx";
 import { Checkbox, TextField } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -11,50 +11,44 @@ import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import WebcamCapture from "../components/WebcamCapture.jsx";
 import { createUser } from "../api/strapi/userApi"; // Import createUser function
-import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
+import Alert from "../components/Alert.jsx";
+
+// import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
+import LoadingSpinner from "../components/LoadingSpinner.jsx";
+import { handlePhotoUpload, uploadImageFromBase64 } from "../api/strapi/uploadApi";
 
 function Register() {
-  const token = import.meta.env.VITE_TOKEN_TEST;
-  const { userId } = useParams();
+  const displayName = localStorage.getItem('displayName');
+  const pictureUrl = localStorage.getItem('pictureUrl');
+  console.log("displayName in Register: ", displayName);
+  console.log("pictureUrl in Register: ", pictureUrl);
+  // console.log("token in Register: ", token);
+  const userId = localStorage.getItem('lineId');
   const theme = createTheme({
     typography: {
       fontFamily: "Sarabun",
     },
   });
+  const navigate = useNavigate(); // Initialize useNavigate for redirection
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [hasImage, setHasImage] = useState(false);  // สถานะว่ามีภาพหรือไม่
 
   // Initial formData state is set with empty fields
   const [formData, setFormData] = useState({
-    username: "",
+    username: displayName,
     password: "",
     fullName: "",
     telNumber: "",
     gender: "",
     address: "",
     cardID: "",
-    photoImage: "",
+    cardIdImage: "",
+    photoImage: pictureUrl? pictureUrl : "",
     checkedOne: false,
   });
-
-  const navigate = useNavigate(); // Initialize useNavigate for redirection
-  const [isFormValid, setIsFormValid] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Function to handle file change from FileUpload component
-  const handleFileChange = (file) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      photoImage: file, // Store the file in formData
-    }));
-  };
-
-  const handleInputChange = (e) => {
-    const { id, name, value, type, checked } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [id || name]: type === "checkbox" ? checked : value,
-    }));
-  };
 
   useEffect(() => {
     const {
@@ -64,6 +58,7 @@ function Register() {
       gender,
       address,
       cardID,
+      // cardIdImage,
       checkedOne,
     } = formData;
 
@@ -74,47 +69,71 @@ function Register() {
         gender &&
         address &&
         cardID &&
+        // hasImage &&
         checkedOne
     );
   }, [formData]);
 
-  const createPhotoImageObject = (uploadedImageData) => {
-    return {
-      id: uploadedImageData.id,
-      name: uploadedImageData.name,
-      alternativeText: uploadedImageData.alternativeText || null,
-      caption: uploadedImageData.caption || null,
-      width: uploadedImageData.width,
-      height: uploadedImageData.height,
-      formats: uploadedImageData.formats, // If formats are available
-      hash: uploadedImageData.hash,
-      ext: uploadedImageData.ext,
-      mime: uploadedImageData.mime,
-      size: uploadedImageData.size,
-      url: uploadedImageData.url,
-      provider: uploadedImageData.provider,
-      createdAt: uploadedImageData.createdAt,
-      updatedAt: uploadedImageData.updatedAt,
-    };
+  // Function to handle file change from FileUpload component
+  const handleFileChange = (file) => {
+    console.log("file change: ", file);
+    setFormData((prevData) => ({
+      ...prevData,
+      photoImage: file, // Store the file in formData
+    }));
   };
+
+  const handleImageCapture = (imageSrc) => {
+    console.log("imageSrc: ", imageSrc);
+    if (imageSrc) {
+      setHasImage(true);  // มีภาพอยู่
+      // setFormData((prevData) => ({
+      //   ...prevData,
+      //   cardIdImage: imageSrc,
+      // }));
+    } else {
+      setHasImage(false);  // ไม่มีภาพ
+    }
+  };
+// ]
+
+  const handleInputChange = (e) => {
+    const { id, name, value, type, checked } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id || name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    let uploadedImageObject = null;
-
+    console.log("formData: ", formData);
     // อัปโหลดรูปภาพก่อน ถ้ามีรูปภาพที่จะอัปโหลด
+    let imageId, cardId_id = 0;
     if (formData.photoImage) {
-      const uploadedImageData = await uploadImage(formData.photoImage);
-      uploadedImageObject = createPhotoImageObject(uploadedImageData); // สร้าง object สำหรับ photoImage
+      const { url, id } = await handlePhotoUpload(formData.photoImage);
+      imageId = id;
+      // ใช้ URL ของรูปภาพและ ID ที่ได้จากการอัปโหลดใน formData หรืออื่น ๆ
+      formData.photoImage = url;
+      console.log("Uploaded Image URL:", url);
+      console.log("Uploaded Image ID:", id);
     }
-    const userData = {
+    const base64Image = localStorage.getItem('cardIdImage');
+    const cardIdImageObject = await uploadImageFromBase64(base64Image)
+    if (cardIdImageObject) {
+      cardId_id = cardIdImageObject.id;
+      formData.cardIdImage = cardIdImageObject.url;
+    }
+
+      const userData = {
       username: formData.username || "cook" + userId ,
       email: "cook" + userId + "@cook.com", // Assuming email is the same as username in this example
       password: "cookcook",
       lineId: userId,
       userType: "customer",
-      photoImage: uploadedImageObject ? uploadedImageObject : null,
-      // photoImage: uploadedImageObject, // Add the uploaded image URL if it exists
+      photoImage: imageId === 0 ? null : imageId,
+      cardIdImage: cardId_id === 0 ? null : cardId_id,
       fullName: formData.fullName,
       telNumber: formData.telNumber,
       gender: formData.gender,
@@ -122,33 +141,37 @@ function Register() {
       cardID: formData.cardID,
     };
     console.log("userData before: ", userData);
-    console.log("token before: ", token);
-    // Call the createUser function to send the formData to the API
-    // Call the createUser function to send the formData to the API
-    const response = await createUser(userData, token);
+
+    const response = await createUser(userData);
     console.log("response: ", response);
-    if (response) {
-      // Assuming that the API response contains an "id" field if registration was successful
-      alert("User registered successfully!");
-      navigate("/home"); // Redirect to home after successful registration
+    console.log("response tok: ", response.jwt);
+    // console.log("response ok: ", response.ok);
+    if (response.jwt !== undefined) {
+      console.log("User registered successfully!");
+      setShowModal(true);
+      const token = response.jwt;
+      localStorage.setItem('token', token);
     } else {
       throw new Error('User registration failed.');
     }
   };
 
-  const handleImageCapture = (imageSrc) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      photoImage: imageSrc,
-    }));
-  };
-
-  if (loading) return <p>Loading...</p>; // Loading state
+  if (loading) return <LoadingSpinner />; // Loading state
   if (error) return <p>Error: {error}</p>; // Error state
 
   return (
+    <>
+      { showModal &&
+      <>
+        <Alert
+          title="User registered successfully!"
+          message={`Welcome, ${formData.username}! We’re so happy to have you on Cook Website.`}
+          path="/home"
+        />
+
+      </>
+      }
     <ThemeProvider theme={theme}>
-      <Header />
       <FileUpload
         photoImage={formData.photoImage} // Pass the selected photo to FileUpload component
         onFileChange={handleFileChange} // Pass handleFileChange function
@@ -191,10 +214,11 @@ function Register() {
             </div>
             <div className="w-full px-2 mt-4">
               <FormControl>
-                <FormLabel>เพศ</FormLabel>
+                <FormLabel>เพศ*</FormLabel>
                 <RadioGroup
                   row
                   name="gender"
+                  required
                   value={formData.gender}
                   onChange={handleInputChange}
                 >
@@ -236,6 +260,9 @@ function Register() {
               />
             </div>
             <div className="w-full px-2 mt-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+                ถ่ายรูปตนเองพร้อมถือบัตรประจำตัวประชาชน<span className="text-red-500">*</span>
+              </label>
               <WebcamCapture onCapture={handleImageCapture} />
             </div>
           </div>
@@ -258,18 +285,21 @@ function Register() {
           </span>
         </div>
         <div className="container mx-auto px-4">
-          <button
-            type="submit"
-            disabled={!isFormValid}
-            className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white ${
-              isFormValid ? "bg-green-500" : "bg-slate-300"
-            }`}
-          >
-            ลงทะเบียน
-          </button>
+        <button
+          type="submit"
+          disabled={!isFormValid || !hasImage || showModal}
+          className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white font-bold transition duration-300 ${
+            isFormValid && hasImage && !showModal
+              ? "bg-green-500 hover:bg-green-600 active:bg-green-700"
+              : "bg-slate-300 cursor-not-allowed"
+          } ${isFormValid && hasImage && !showModal ? "cursor-pointer" : ""}`}
+        >
+          ลงทะเบียน
+        </button>
         </div>
       </form>
     </ThemeProvider>
+    </>
   );
 }
 

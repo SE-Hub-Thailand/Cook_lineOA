@@ -5,8 +5,8 @@ const ShopList = () => {
   const [shops, setShops] = useState([]);
   const [error, setError] = useState(null);
 //   const token = 'your-access-token'; // Replace with your method of obtaining the token
-	const token = import.meta.env.VITE_TOKEN_TEST ;
-	// const token = localStorage.getItem('token');
+	// const token = import.meta.env.VITE_TOKEN_TEST ;
+	const token = localStorage.getItem('token');
 //   const decodedToken = jwt_decode(token);
 //         const currentTime = Date.now() / 1000;
 

@@ -20,7 +20,7 @@ export default function MachinePosition() {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <Container maxWidth="sm">
         <div className="text-2xl text-center mt-10">ตำแหน่งตู้</div>
         <div className="bg-grey-bg mt-10 grid grid-cols-2 rounded-t-lg">

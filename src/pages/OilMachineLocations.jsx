@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css';  // Import Leaflet CSS
 import { useEffect, useState } from 'react';
 import { getAllOilMachines } from '../api/strapi/oilMachineApi';
 import * as L from "leaflet";
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const containerStyle = {
   width: '100%',
@@ -24,7 +25,8 @@ const OilMachineLocations = () => {
   const [oilMachines, setOilMachines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const token = import.meta.env.VITE_TOKEN_TEST ;
+  // const token = import.meta.env.VITE_TOKEN_TEST ;
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchOilMachines = async () => {
@@ -42,7 +44,7 @@ const OilMachineLocations = () => {
     fetchOilMachines();
   }, [token]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <p>Error: {error}</p>;
   return (
     <>

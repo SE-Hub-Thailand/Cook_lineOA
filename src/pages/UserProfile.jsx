@@ -10,7 +10,7 @@ import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import WebcamCapture from "../components/WebcamCapture.jsx";
 import { getUser } from "../api/strapi/userApi";
-
+import LoadingSpinner from "../components/LoadingSpinner.jsx";
 function UserProfile() {
 
   const theme = createTheme({
@@ -36,8 +36,9 @@ function UserProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const userId = import.meta.env.VITE_USER_ID;
-  const token = import.meta.env.VITE_TOKEN_TEST;
+  const userId = localStorage.getItem('lineId');
+  // const token = import.meta.env.VITE_TOKEN_TEST;
+  const token = localStorage.getItem('token');
 
   const handleInputChange = (e) => {
     const { id, name, value, type, checked } = e.target;
@@ -99,7 +100,7 @@ function UserProfile() {
     }));
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <LoadingSpinner />;
   if (error) return <p>Error: {error}</p>;
 
   return (
