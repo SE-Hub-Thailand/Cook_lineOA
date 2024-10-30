@@ -371,10 +371,10 @@ function Register() {
           type="submit"
           disabled={!isFormValid || !hasImage || showModal}
           className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white font-bold transition duration-300 ${
-            isFormValid && hasImage && !showModal
+            isFormValid && !showModal
               ? "bg-green-500 hover:bg-green-600 active:bg-green-700"
               : "bg-slate-300 cursor-not-allowed"
-          } ${isFormValid && hasImage && !showModal ? "cursor-pointer" : ""}`}
+          } ${isFormValid && !showModal ? "cursor-pointer" : ""}`}
         >
           ลงทะเบียน
         </button>
