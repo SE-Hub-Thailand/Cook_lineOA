@@ -205,7 +205,7 @@ function UpdateUserProfile() {
         <Alert
           title="User data updated successfully!"
           message={`Hi, ${formData.username}! Your information has been updated successfully.`}
-          path="0"
+          path="/home"
           status="success"
         />
       </>

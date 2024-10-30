@@ -9,10 +9,10 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
-import WebcamCapture from "../components/WebcamCapture.jsx";
+// import WebcamCapture from "../components/WebcamCapture.jsx";
 import { createUser } from "../api/strapi/userApi"; // Import createUser function
 import Alert from "../components/Alert.jsx";
-
+import CameraCapture from "../components/CameraCapture.jsx";
 // import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
 import { handlePhotoUpload, uploadImageFromBase64 } from "../api/strapi/uploadApi";
@@ -35,6 +35,7 @@ function Register() {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [hasImage, setHasImage] = useState(false);  // สถานะว่ามีภาพหรือไม่
+  const [capturedImage, setCapturedImage] = useState(null);
 
   // Initial formData state is set with empty fields
   const [formData, setFormData] = useState({
@@ -83,18 +84,18 @@ function Register() {
     }));
   };
 
-  const handleImageCapture = (imageSrc) => {
-    console.log("imageSrc: ", imageSrc);
-    if (imageSrc) {
-      setHasImage(true);  // มีภาพอยู่
-      // setFormData((prevData) => ({
-      //   ...prevData,
-      //   cardIdImage: imageSrc,
-      // }));
-    } else {
-      setHasImage(false);  // ไม่มีภาพ
-    }
-  };
+  // const handleImageCapture = (imageSrc) => {
+  //   console.log("imageSrc: ", imageSrc);
+  //   if (imageSrc) {
+  //     setHasImage(true);  // มีภาพอยู่
+  //     // setFormData((prevData) => ({
+  //     //   ...prevData,
+  //     //   cardIdImage: imageSrc,
+  //     // }));
+  //   } else {
+  //     setHasImage(false);  // ไม่มีภาพ
+  //   }
+  // };
 // ]
 
   const handleInputChange = (e) => {
@@ -155,6 +156,19 @@ function Register() {
     } else {
       throw new Error('User registration failed.');
     }
+  };
+
+  const handleImageCaptured = (id, imageData) => {
+    if (imageData) {
+      localStorage.setItem(id, imageData);
+      console.log("id: ", id);
+      console.log("imageData: ", imageData);
+      setHasImage(true);
+      setCapturedImage(imageData);
+      console.log("imageData: ", imageData);
+    } else {
+        setHasImage(false);  // ไม่มีภาพ
+      }
   };
 
   if (loading) return <LoadingSpinner />; // Loading state
@@ -326,7 +340,12 @@ function Register() {
             <label className="block text-gray-700 text-sm font-bold mb-2">
                 ถ่ายรูปตนเองพร้อมถือบัตรประจำตัวประชาชน<span className="text-red-500">*</span>
               </label>
-              <WebcamCapture onCapture={handleImageCapture} />
+              {/* <WebcamCapture onCapture={handleImageCapture} /> */}
+              <CameraCapture
+                onImageCaptured={handleImageCaptured}
+                initialImage="" // ใส่ URL ของภาพหรือ Data URL ที่ต้องการ
+                id="cardIdImage"
+              />
             </div>
           </div>
         </div>
