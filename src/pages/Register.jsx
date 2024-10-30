@@ -139,6 +139,7 @@ function Register() {
       gender: formData.gender,
       address: formData.address,
       cardID: formData.cardID,
+      point: 0,
     };
     console.log("userData before: ", userData);
 
@@ -167,6 +168,7 @@ function Register() {
           title="User registered successfully!"
           message={`Welcome, ${formData.username}! We’re so happy to have you on Cook Website.`}
           path="/home"
+          status="success"
         />
 
       </>
@@ -180,29 +182,45 @@ function Register() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-wrap -mx-2">
             <div className="w-full md:w-1/2 px-2">
-              <TextField
-                id="username"
-                label="ชื่อผู้ใช้"
-                variant="outlined"
-                className="w-full bg-white"
-                required
-                value={formData.username}
-                onChange={handleInputChange}
-              />
+            <TextField
+              id="username"
+              label="ชื่อผู้ใช้"
+              variant="outlined"
+              className="w-full bg-white"
+              required
+              value={formData.username}
+              onChange={handleInputChange}
+              // inputProps={{
+              //   pattern: "[A-Za-z0-9]*", // อนุญาตเฉพาะตัวอักษรและตัวเลข
+              //   inputMode: "text" // แสดงคีย์บอร์ดสำหรับการพิมพ์ตัวอักษรและตัวเลข
+              // }}
+              // error={formData.username && !/^[A-Za-z0-9]+$/.test(formData.username)}
+              // helperText={
+              //   formData.username && !/^[A-Za-z0-9]+$/.test(formData.username)
+              //     ? "กรุณากรอกเฉพาะตัวอักษรและตัวเลขเท่านั้น"
+              //     : ""
+              // }
+            />
             </div>
             <div className="w-full md:w-1/2 px-2 mt-4">
-              <TextField
-                id="fullName"
-                label="ชื่อ-นามสกุล"
-                variant="outlined"
-                className="w-full bg-white"
-                required
-                value={formData.fullName}
-                onChange={handleInputChange}
-              />
+            <TextField
+              id="fullName"
+              label="ชื่อ-นามสกุล"
+              variant="outlined"
+              className="w-full bg-white"
+              required
+              value={formData.fullName}
+              onChange={handleInputChange}
+              // inputProps={{
+              //   pattern: "[A-Za-z0-9 ]*", // อนุญาตเฉพาะตัวอักษร ตัวเลข และ space
+              //   inputMode: "text" // แสดงคีย์บอร์ดสำหรับการพิมพ์ข้อความ
+              // }}
+              // error={formData.fullName && !/^[A-Za-z0-9 ]+$/.test(formData.fullName)}
+              // helperText={ formData.fullName && !/^[A-Za-z0-9 ]+$/.test(formData.fullName) ? "กรุณากรอกเฉพาะตัวอักษร ตัวเลข และช่องว่างเท่านั้น" : "" }
+            />
             </div>
             <div className="w-full md:w-1/2 px-2 mt-4">
-              <TextField
+            <TextField
                 id="telNumber"
                 label="เบอร์โทร"
                 variant="outlined"
@@ -210,6 +228,24 @@ function Register() {
                 required
                 value={formData.telNumber}
                 onChange={handleInputChange}
+                inputProps={{
+                  maxLength: 10, // จำกัดจำนวนหลักให้ไม่เกิน 10
+                  pattern: "[0-9]*", // อนุญาตเฉพาะตัวเลข
+                  inputMode: "numeric", // แสดงคีย์บอร์ดตัวเลขบนอุปกรณ์มือถือ
+                }}
+                error={
+                  formData.telNumber &&
+                  (formData.telNumber.length !== 10 || !/^0[0-9]{9}$/.test(formData.telNumber))
+                }
+                helperText={
+                  formData.telNumber && !/^[0-9]+$/.test(formData.telNumber)
+                    ? "กรุณากรอกเฉพาะตัวเลขเท่านั้น"
+                    : formData.telNumber && formData.telNumber.length !== 10
+                    ? "เบอร์โทรศัพท์ต้องมี 10 หลัก"
+                    : formData.telNumber && !/^0[0-9]{9}$/.test(formData.telNumber)
+                    ? "เบอร์โทรศัพท์ต้องเริ่มต้นด้วยเลข 0"
+                    : ""
+                }
               />
             </div>
             <div className="w-full px-2 mt-4">
@@ -246,6 +282,17 @@ function Register() {
                 required
                 value={formData.address}
                 onChange={handleInputChange}
+                // inputProps={{
+                //   pattern: "^[A-Za-z0-9.,\\-\\s]*$", // อนุญาตเฉพาะตัวอักษร ตัวเลข ช่องว่าง จุด จุลภาค และขีดกลาง
+                // }}
+                // error={
+                //   formData.address && !/^[A-Za-z0-9.,\-\s]*$/.test(formData.address)
+                // }
+                // helperText={
+                //   formData.address && !/^[A-Za-z0-9.,\-\s]*$/.test(formData.address)
+                //     ? "ที่อยู่ต้องไม่มีอักขระพิเศษอื่น ๆ"
+                //     : ""
+                // }
               />
             </div>
             <div className="w-full px-2 mt-4">
@@ -257,6 +304,22 @@ function Register() {
                 required
                 value={formData.cardID}
                 onChange={handleInputChange}
+                inputProps={{
+                  maxLength: 13, // จำกัดจำนวนหลักให้ไม่เกิน 13
+                  pattern: "[0-9]*", // อนุญาตเฉพาะตัวเลข
+                  inputMode: "numeric", // แสดงคีย์บอร์ดตัวเลขบนอุปกรณ์มือถือ
+                  }}
+                  error={
+                    formData.cardID &&
+                    (formData.cardID.length !== 13 || !/^[0-9]+$/.test(formData.cardID))
+                  }
+                  helperText={
+                    formData.cardID && !/^[0-9]+$/.test(formData.cardID)
+                    ? "กรุณากรอกเฉพาะตัวเลขเท่านั้น"
+                    : formData.cardID && formData.cardID.length !== 13
+                    ? "หมายเลขบัตรประจำตัวต้องมี 13 หลัก"
+                    : ""
+                  }
               />
             </div>
             <div className="w-full px-2 mt-4">

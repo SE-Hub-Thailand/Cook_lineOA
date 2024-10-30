@@ -1,282 +1,95 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
-import QRCode from 'qrcode.react';
-import { generateRandomString } from "../api/utils/random";
-import Header from '../components/Header';
-import AlertNoData from '../components/AlertNoData';
-import RedeemPointsModal from '../components/RedeemPointsModal';
-import { createRedeem } from "../api/strapi/redeemApi";
-import { updateUser } from "../api/strapi/userApi";
-// import { PaymentSuccessAlert } from '../components/PaymentSuccessAler';
+import React, { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
+// import ReactSlider from "react-slider";
+import { HiX } from "react-icons/hi";
+// import { createInvoice } from "../../api/strapi/invoiceApi";
+import { getRedeemsByQrCode } from "../api/strapi/redeemApi";
+import { useNavigate } from "react-router-dom";
 
-const RedeemDetails = () => {
-  const location = useLocation();
-  const id = useParams();
-  const token = localStorage.getItem('token');
-  const redeem = JSON.parse(localStorage.getItem('redeem'));
-  const [matchingRedeem, setMatchingRedeem] = useState(null);
-
-  console.log("id: ", id);
-  const redeem1 = JSON.parse(redeem[0].productJsonArray);
-  console.log("redeem1: ", redeem1);
-  console.log("redeem1[0].name: ", JSON.parse(redeem1)[0].name);
-
-
-  // ฟังก์ชันหา matchingRedeem ในอาเรย์ redeem
-  const findRedeem = () => {
-    for (let i = 0; i < redeem.length; i++) {
-      if (redeem[i].id === id) {
-        // console.log("redeem[i]: ", redeem[i]);
-        setMatchingRedeem(redeem[i]);
-        return;
-      }
-    }
-  };
-
-  // ใช้ useEffect เพื่อเรียก findRedeem เมื่อ id หรือ redeem เปลี่ยนแปลง
-  useEffect(() => {
-    if (redeem && id) {
-      findRedeem();
-      console.log("matchingRedeem: ", matchingRedeem);
-    }
-  }, [id, redeem]);
-
-  // ถ้าไม่พบ matchingRedeem ให้แสดง AlertNoData
-  if (!matchingRedeem) {
-    return <AlertNoData />;
+export default function RedeemDetails({qrCode, isOpen, onClose,}) {
+  if (!qrCode || !isOpen) {
   }
 
-  console.log("matchingRedeem: ", matchingRedeem);
-
-  const [isOn, setIsOn] = useState(false);
-  const [isShowQr, setIsShowQr] = useState(false); // toggle state for QR code
-  const [randomString, setRandomString] = useState(''); // Store the random string
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false); // disable button state after toggling
-
-  const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
-
-  // ฟังก์ชันเปิด/ปิด Modal
-  const handleOpenRedeemModal = () => setIsRedeemModalOpen(true);
-  const handleCloseRedeemModal = () => setIsRedeemModalOpen(false);
-
-  let totalPointsSum = 0; // Declare total points sum
-  let totalCountSum = 0;  // Declare total count sum
-
-  const toggleSwitch = () => {
-    if (!isButtonDisabled) {
-      setIsOn(!isOn);
-      setIsRedeemModalOpen(true); // Open the redeem modal when the toggle is turned on
-      setIsButtonDisabled(true); // Disable the button after it's clicked
-
-    }
+  RedeemDetails.propTypes = {
+    qrCode: PropTypes.string.isRequired,
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
   };
 
+  const [showModal, setShowModal] = useState(isOpen); // Modal is initially visible
+  const navigate = useNavigate();
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-
-  const handleConfirm = () => {
-    // const randomValue = generateRandomString(10); // Generate a 10-character string
-    // setRandomString(randomValue);
-    // console.log("Random string:", randomValue);
-    // console.log("การแลกแต้มสำเร็จ");
-    // setIsRedeemModalOpen(false); // ปิด Modal หลังจากการยืนยัน
-    setIsShowQr(true); // แสดง QR code
-    const user = JSON.parse(localStorage.getItem('user'));
-
-    // จัดรูปแบบวันที่และเวลาในรูปแบบ DD/MM/YYYY HH:mm AM/PM
-    const now = new Date();
-  now.setHours(now.getHours() + 7); // Adjust to Thai time zone (UTC+7)
-
-  const redeemData = {
-    customer: user?.id, // แก้ id ให้เป็น id ของลูกค้าที่ล็อกอิน
-    totalPoints: totalPointsSum,
-    qrCode: randomValue,
-    status: "pending",
-    // invoice: "1",
-    productJsonArray: JSON.stringify(cart2),
-    shop: localStorage.getItem('shopId'),
-    date: now.toISOString().split('T')[0], // ได้ค่าเฉพาะวันที่ เช่น 16/10/2024
-    time: now.toISOString().split('T')[1].split('.')[0] // ได้ค่าเฉพาะเวลา เช่น 12:34 PM
+  const handleClose = () => {
+    setShowModal(false); // Close modal on button click
+    navigate(-1);
   };
-    const payload = {
-      data: redeemData // Wrap redeemData inside "data"
+
+  useEffect(() => {
+    const fetchRedeem = async () => {
+      try {
+        const redeemArray = await getRedeemsByQrCode(qrCode);
+
+        if (redeemArray && redeemArray.productJsonArray && redeemArray.productJsonArray.length !== undefined) {
+          const list = JSON.parse(redeemArray.productJsonArray);
+          const productArray = JSON.parse(list);
+          console.log("productArray itemm: ", productArray);
+          setItems(productArray);
+        }
+        setLoading(false); // หยุด loading
+      } catch (error) {
+        console.error("Error fetching history points:", error);
+        setError(error.message);
+        setLoading(false);
+      }
     };
 
-    const response = createRedeem(payload, token);
-    // if (response.ok)
-    const response2 = updateUser(user?.id, { point: currentPoint - totalPointsSum }, token);
+    fetchRedeem();
+  }, [qrCode]);
 
-    // totalPoints: number;
-    // status: string;
-    // customer: User;
-    // qrCode: string;
-    // productJsonArray: JSON;
-    console.log("response: ", response);
-  };
+  const totalpoint = items.reduce((sum, item) => sum + item.counts * item.point, 0);
 
-  const handleQrCodeClick = () => {
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      const qrImageUrl = canvas.toDataURL("image/png"); // Convert QR code to image data URL
-      const newWindow = window.open();
-      newWindow.document.write(`<img src="${qrImageUrl}" />`); // Open the image in a new window
-    }
-  };
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for controlling Modal
-
-  const handleViewQrCode = () => {
-    setIsModalOpen(true); // Open the modal
-  };
-
-  const handleDownloadQrCode = () => {
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      const qrImageUrl = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = qrImageUrl;
-      link.download = "qrcode.png"; // Set the download name
-      link.click(); // Trigger the download
-    }
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false); // Close the modal
-  };
-
-  // let index = 0;
   return (
-      <>
-        {/* {filteredProducts.map(redeem => (
-          <div key={redeem.id}></div> */}
-        <Header />
-      </>
-);
-//   return (
-//     <>
-//       <Header />
-//       <div className="flex justify-center mt-6 px-4 sm:px-6 lg:px-8">
-//         <div className="bg-white shadow-md rounded-lg p-4 sm:p-6 w-full max-w-md border-2 border-gray-300">
-//           <h2 className="text-center text-lg font-semibold text-gray-700 mb-4">รายการที่เลือก</h2>
-//           <div className="border-b-2 border-gray-300 mb-4"></div>
-//           {itemCount > 0 && (
-//             <ul className="space-y-3 sm:space-y-4">
-//               {redeem.map((item) => {
-//                 const count = parsedCounts[item.id];
-//                 if (count > 0) {
-//                   const totalPoints = item.point * count;
-//                   totalPointsSum += totalPoints; // Adding points to total sum
-//                   totalCountSum += count; // Adding count to total count
-//                   index += 1;
-//                   console.log("currentPoint", currentPoint, " totalPointsSum: ", totalPointsSum);
-//                   return (
-//                     <li key={item.id} className="flex flex-row justify-between items-start sm:items-center py-4 border-b border-gray-200">
-//                       <div className="sm:w-full">
-//                         <span className="font-semibold text-lg sm:text-xl">รายการที่ {index}:</span>
-//                         <span className="text-md sm:text-lg ml-2">{item.name}</span>
-//                         <br />
-//                         <span className="text-sm sm:text-md text-gray-600">จำนวน {count} รายการ</span>
-//                       </div>
-//                       {item.point ? (
-//                         <div className="mt-2 text-md sm:text-lg text-gray-700">
-//                           <p>ใช้แต้ม</p>
-//                           <p> {totalPoints} แต้ม</p>
-//                         </div>
-//                       ) : (
-//                         <span className="text-md sm:text-lg text-gray-500">ไม่มีแต้มสำหรับสินค้านี้</span>
-//                       )}
-//                     </li>
-//                   );
-//                 }
-//                 return null;
-//               })}
-//             </ul>
-//           )}
-//           <div className="border-t-2 border-gray-300 mt-4 pt-4">
-//             <p className="text-center text-sm font-light">จำนวนทั้งหมด: {totalCountSum} รายการ</p>
-//             <p className="text-center text-lg font-semibold">แต้มรวมทั้งหมด: {totalPointsSum} แต้ม</p><br />
-//             {/* <p className="text-center text-sm sm:text-lg text-gray-500 mt-2">ขอบคุณที่ใช้บริการ</p> */}
-//             {totalPointsSum > currentPoint ? (
-//               <p className="text-center text-lg font-semibold  text-red-600">แต้มไม่เพียงพอต่อการแลกสินค้า</p>
-//             ):(
-//               <p className="text-center text-sm sm:text-lg text-gray-500 mt-2">ขอบคุณที่ใช้บริการ</p>
-//             )}
-//           </div>
+    <>
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">
+          <div className="relative bg-white rounded-lg shadow-lg w-full max-w-lg h-screen">
+            {/* Close Button */}
+            <div className="w-full h-12 bg-red-600 flex items-center justify-end px-3 mb-4">
+              <HiX className="text-xl text-white cursor-pointer" onClick={onClose} />
+            </div>
 
-//           {/* QR Code section */}
-//           {itemCount > 0 && currentPoint >= totalPointsSum &&
-//             <div>
-//               <p className="text-center pt-10 text-xl">Slide เพื่อสร้าง QR Code สำหรับใช้ตอนรับสินค้า</p>
-//               <>
-//               <div className="mt-10 flex justify-center">
-//                 <div
-//                 className={`slider-container ${isOn ? "on" : ""}`}
-//                 onClick={toggleSwitch}
-//                 style={{ cursor: isButtonDisabled ? 'not-allowed' : 'pointer' }} // Disable cursor when button is disabled
-//                 >
-//                 <div className="slider">
-//                 <div className="slider-button"></div>
-//                 </div>
-//                 </div>
-//               </div>
-//               </>
+            {/* Table */}
+            <div className="w-full p-6">
+              <table className="min-w-full border-collapse border border-black">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 border border-black">รายการสินค้า</th>
+                    <th className="px-4 py-2 border border-black">จำนวน</th>
+                    <th className="px-4 py-2 border border-black">มูลค่า (บาท)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, index) => (
+                    <tr key={index} className="text-center">
+                      <td className="px-4 py-2 border-r border-black">{item.name}</td>
+                      <td className="px-4 py-2 border-r border-black">{item.counts}</td>
+                      <td className="px-4 py-2">{item.point}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-//               {isOn && (
-//                 <div>
-//                   <RedeemPointsModal
-//                     point={totalPointsSum}
-//                     isOpen={isRedeemModalOpen}
-//                     onClose={handleCloseRedeemModal}
-//                     onConfirm={handleConfirm}
-//                   />
-//                   {isShowQr &&
-//                       <div className="m-5 p-5 flex flex-col items-center justify-center bg-gray-100 rounded-lg shadow-md">
-//                         <div onClick={handleQrCodeClick} className="cursor-pointer bg-white rounded-lg p-6 shadow-lg transition-all hover:shadow-2xl">
-//                           <QRCode value={randomString} className="rounded-md" /> {/* Generate QR code from random string */}
-//                         </div>
-//                         <button
-//                           onClick={handleViewQrCode}
-//                           className="mt-4 bg-blue-400 text-white px-6 py-3 rounded-md shadow-lg hover:bg-blue-500 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105"
-//                         >
-//                           กดเพื่อขยายขนาด QR Code และ Download
-//                         </button>
-//                       </div>
-//                   }
-//               </div>
-//               )}
-//             </div>
-//           }
-//         </div>
-//         {isModalOpen && (
-//         <div
-//           className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50"
-//           onClick={handleCloseModal}
-//         >
-//           <div className="bg-slate-200 p-4 rounded-lg" onClick={(e) => e.stopPropagation()}>
-//             <h2 className="text-center text-lg text-black font-semibold m-4">QR Code สำหรับใช้ตอนรับสินค้า</h2>
-//             <div className="flex justify-center items-center mt-6 p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out">
-//               <QRCode value={randomString} size={256} className="rounded-md" />
-//             </div>
-//             <div className="mt-4 flex space-x-4 justify-center">
-//               <button
-//                 className="bg-red-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-red-600 hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105"
-//                 onClick={handleCloseModal}
-//               >
-//                 Close
-//               </button>
-//               <button
-//                 className="bg-teal-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-teal-600 hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105"
-//                 onClick={handleDownloadQrCode}
-//               >
-//                 Download
-//               </button>
-//             </div>
-
-//           </div>
-//         </div>
-//       )}
-//       </div>
-//     </>
-//   );
-// };
-};
-export default RedeemDetails;
-
+              <div className="mt-4 flex justify-between items-center font-bold">
+                <span className="text-lg">รวมเป็นมูลค่า</span>
+                <span className="text-lg">{totalpoint}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;บาท</span>
+              </div>
+          </div>
+        </div>
+      </div>
+      )}
+    </>
+  );
+}

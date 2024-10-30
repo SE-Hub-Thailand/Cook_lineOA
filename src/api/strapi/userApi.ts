@@ -34,9 +34,7 @@ export const getUser = async (userId: string, token: string): Promise<User> => {
 
     try {
         // Use query parameters to filter by lineId if necessary
-        const lowerCaseUserId = userId.toLowerCase(); // แปลง userId เป็นตัวพิมพ์เล็ก
-        console.log('lowerCaseUserId', lowerCaseUserId);
-        const url = `${API_URL}/api/users?populate[photoImage]=true&filters[lineId][$eq]=${lowerCaseUserId}`;
+        const url = `${API_URL}/api/users?populate[photoImage]=true&populate[cardIdImage]=true&filters[lineId][$eq]=${userId}`;
         // const url = `${API_URL}/api/users`;
 
 
@@ -81,6 +79,7 @@ export const getUser = async (userId: string, token: string): Promise<User> => {
             userType: data[0].userType,
             point: data[0].point,
             photoImage: data[0].photoImage,
+            cardIdImage: data[0].cardIdImage,
         };
 
         // console.log('JSON.stringify(user): ', JSON.stringify(user)); // Log users to check if the mapping worked correctly

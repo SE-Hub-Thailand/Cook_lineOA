@@ -1,7 +1,19 @@
 import React from 'react';
+import Swal from 'sweetalert2';
 
 const RedeemPointsModal = ({ point, isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
+
+  const handleConfirm = () => {
+    Swal.fire({
+      icon: "success",
+      text: "ระบบได้ทำการหักแต้มของคุณสำเร็จแล้ว กรุณานำ QR Code ที่ได้รับไปแสดงที่ร้านค้าเพื่อรับสินค้า",
+      position: "center",
+      showConfirmButton: true,
+      confirmButtonText: "ตกลง",
+    });
+    onConfirm();
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -44,7 +56,7 @@ const RedeemPointsModal = ({ point, isOpen, onClose, onConfirm }) => {
           </button>
         </div>
         <p className="text-gray-600 mb-6">
-          ท่านกำลังจะแลก {point} คะแนน กรุณากด OK เพื่อยืนยันให้ระบบทำการแลกสินค้าและหักแต้ม
+          ระบบกำลังจะหัก {point} คะแนนของคุณเพื่อแลกสินค้า กรุณากด OK เพื่อยืนยันการทำรายการ
         </p>
         <div className="flex justify-end space-x-4">
           <button
@@ -54,7 +66,7 @@ const RedeemPointsModal = ({ point, isOpen, onClose, onConfirm }) => {
             ยกเลิก
           </button>
           <button
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-all"
           >
             OK

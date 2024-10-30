@@ -146,7 +146,7 @@ const CartSummary = () => {
                           <p> {totalPoints} แต้ม</p>
                         </div>
                       ) : (
-                        <span className="text-md sm:text-lg text-gray-500">ไม่มีแต้มสำหรับสินค้านี้</span>
+                        <span className="text-md sm:text-lg text-gray-500">ฟรี</span>
                       )}
                     </li>
                   );

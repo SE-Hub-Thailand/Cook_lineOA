@@ -14,6 +14,7 @@ import LoadingSpinner from "../components/LoadingSpinner.jsx";
 import WebcamCapture from "../components/WebcamCapture.jsx";
 import Alert from "../components/Alert.jsx";
 import { handlePhotoUpload, uploadImageFromBase64 } from "../api/strapi/uploadApi";
+import CameraCapture from "../components/CameraCapture.jsx";
 
 function UpdateUserProfile() {
   const userId = localStorage.getItem('lineId');
@@ -28,6 +29,7 @@ function UpdateUserProfile() {
   const [hasImage, setHasImage] = useState(false);  // สถานะว่ามีภาพหรือไม่
   const [showModal, setShowModal] = useState(false);
   const [fileChange, setFileChange] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
 
   const theme = createTheme({
     typography: {
@@ -132,7 +134,9 @@ function UpdateUserProfile() {
       console.log("Uploaded Image ID:", id);
     }
     if (hasImage) {
-      const base64Image = localStorage.getItem('cardIdImage');
+      // const base64Image = localStorage.getItem('cardIdImage');
+      const base64Image = capturedImage;
+      console.log("base64Image: ", base64Image);
       const cardIdImageObject = await uploadImageFromBase64(base64Image)
       if (cardIdImageObject) {
         cardId_id = cardIdImageObject.id;
@@ -164,17 +168,31 @@ function UpdateUserProfile() {
     }
   };
 
-  const handleImageCapture = (imageSrc) => {
-    console.log("imageSrc: ", imageSrc);
-    if (imageSrc) {
-      setHasImage(true);  // มีภาพอยู่
-      // setFormData((prevData) => ({
-      //   ...prevData,
-      //   cardIdImage: imageSrc,
-      // }));
+  // const handleImageCapture = (imageSrc) => {
+  //   console.log("imageSrc: ", imageSrc);
+  //   if (imageSrc) {
+  //     setHasImage(true);  // มีภาพอยู่
+  //     // setFormData((prevData) => ({
+  //     //   ...prevData,
+  //     //   cardIdImage: imageSrc,
+  //     // }));
+  //   } else {
+  //     setHasImage(false);  // ไม่มีภาพ
+  //   }
+  // };
+
+  // ฟังก์ชันที่เรียกเมื่อมีการถ่ายรูปหรืออัปโหลดรูปใหม่
+  const handleImageCaptured = (id, imageData) => {
+    if (imageData) {
+      localStorage.setItem(id, imageData);
+      console.log("id: ", id);
+      console.log("imageData: ", imageData);
+      setHasImage(true);
+      setCapturedImage(imageData);
+      console.log("imageData: ", imageData);
     } else {
-      setHasImage(false);  // ไม่มีภาพ
-    }
+        setHasImage(false);  // ไม่มีภาพ
+      }
   };
 
   if (loading) return <LoadingSpinner />; // Loading state
@@ -187,7 +205,8 @@ function UpdateUserProfile() {
         <Alert
           title="User data updated successfully!"
           message={`Hi, ${formData.username}! Your information has been updated successfully.`}
-          path="/home"
+          path="0"
+          status="success"
         />
       </>
       }
@@ -284,7 +303,12 @@ function UpdateUserProfile() {
               <label className="block text-gray-700 text-sm font-bold mb-2">
                 ถ่ายรูปตนเองพร้อมถือบัตรประจำตัวประชาชน
               </label>
-              <WebcamCapture onCapture={handleImageCapture} />
+              {/* <WebcamCapture onCapture={handleImageCapture} /> */}
+              <CameraCapture
+                onImageCaptured={handleImageCaptured}
+                initialImage={user?.cardIdImage?.url ? `${API_URL}${user.cardIdImage.url}` : ""} // ใส่ URL ของภาพหรือ Data URL ที่ต้องการ
+                id="cardIdImage"
+              />
             </div>
           </div>
         </div>

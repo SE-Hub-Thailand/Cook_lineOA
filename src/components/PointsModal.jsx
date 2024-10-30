@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import PropTypes from "prop-types";
+import React, { useState } from "react";
 
-export default function PointsModal() {
-  const [showModal, setShowModal] = useState(true); // Modal is initially visible
+export default function PointsModal({ text, closeModal }) {
+  const [showModal, setShowModal] = useState(true);
 
-  const closeModal = () => {
-    setShowModal(false); // Close modal on button click
+  const handleClose = () => {
+    setShowModal(false); // ปิด modal ภายในคอมโพเนนต์นี้
+    closeModal(); // เรียก closeModal ที่ถูกส่งเข้ามาจากภายนอกเพื่อปิด modal
   };
+
+  if (!showModal) return null;
 
   return (
     <>
@@ -15,7 +19,7 @@ export default function PointsModal() {
             {/* Close Button */}
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-              onClick={closeModal}
+              onClick={handleClose}
             >
               &times;
             </button>
@@ -23,7 +27,7 @@ export default function PointsModal() {
             {/* Image */}
             <div className="flex justify-center">
               <img
-                src="https://cdn-icons-png.flaticon.com/512/1828/1828843.png" // Replace with a suitable image URL
+                src="https://cdn-icons-png.flaticon.com/512/1828/1828843.png"
                 alt="Insufficient Points"
                 className="w-32 h-32"
               />
@@ -31,7 +35,7 @@ export default function PointsModal() {
 
             {/* Text */}
             <p className="text-center text-lg font-semibold text-red-600 mt-4">
-              แต้มไม่พอ
+              {text}
             </p>
           </div>
         </div>
@@ -39,3 +43,9 @@ export default function PointsModal() {
     </>
   );
 }
+
+PointsModal.propTypes = {
+  text: PropTypes.string.isRequired,
+  closeModal: PropTypes.func.isRequired,
+};
+

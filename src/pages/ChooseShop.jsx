@@ -19,6 +19,8 @@ export default function ChooseShop() {
   const [error, setError] = useState(null);
   const { id } = useParams();
   const [showModal, setShowModal] = useState(false);
+  const [showModal2, setShowModal2] = useState(false);
+
   // const [counts, setCounts] = useState(() => {
   //   const storedCounts = localStorage.getItem('cart');
   //   return storedCounts ? JSON.parse(storedCounts) : {};
@@ -99,22 +101,35 @@ export default function ChooseShop() {
       // return;
     }
 
-    // Check if totalPointsSum exceeds 100
-
     // Check if the product already exists in the updatedCounts array
     const existingProductIndex = storedCounts.findIndex(item => item.id === productId);
 
     if (existingProductIndex !== -1) {
       // If the product exists, update the counts
       storedCounts[existingProductIndex].counts += quantity;
+      if (p.numStock < storedCounts[existingProductIndex].counts) {
+        console.log("2.1 modal2", showModal2);
+        setShowModal2(true);
+        console.log("2.2 modal2", showModal2);
+        return;
+      }
     } else {
       // If the product does not exist, push a new entry with all necessary data
+      console.log("p.numStock: ", p.numStock, " >= quantity: ", quantity);
+      if (p.numStock < quantity) {
+        console.log("1.1 modal2", showModal2);
+        setShowModal2(true);
+        console.log("1.2 modal2", showModal2);
+        return;
+
+      }
       storedCounts.push({
         id: p.id,
         name: p.name,
         counts: quantity, // Initial count based on the update
         point: p.point,
         numStock: p.numStock,
+        price: p.price,
       });
     }
 
@@ -129,46 +144,6 @@ export default function ChooseShop() {
     console.log("updatedCounts in update: ", JSON.stringify(updatedCounts));
 
   };
-  // const updateCart = (productId, quantity) => {
-  //   // Find the product in the products array
-  //   const p = products.find(p => p.id === productId);
-  //   if (!p) {
-  //     console.error(`Product with id ${productId} not found.`);
-  //     return;
-  //   }
-
-  //   console.log("AllP: ", p);
-  //   console.log("add p[", productId, "]: ", p.name, " point: ", p.point, " numStock: ", p.numStock);
-
-    // // Retrieve the current cart items from localStorage or an empty array if none exist
-    // const storedCounts = JSON.parse(localStorage.getItem('cart')) || [];
-
-    // // Check if the product already exists in the updatedCounts array
-    // const existingProductIndex = storedCounts.findIndex(item => item.id === productId);
-
-    // if (existingProductIndex !== -1) {
-    //   // If the product exists, update the counts
-    //   storedCounts[existingProductIndex].counts += quantity;
-    // } else {
-    //   // If the product does not exist, push a new entry with all necessary data
-    //   storedCounts.push({
-    //     id: p.id,
-    //     name: p.name,
-    //     counts: quantity, // Initial count based on the update
-    //     point: p.point,
-    //     numStock: p.numStock,
-    //   });
-    // }
-
-    // // Update state with an array of products containing detailed information
-    // setCounts(storedCounts); // Assuming 'counts' is an array of products
-
-    // // Store the updated data in localStorage
-    // localStorage.setItem('cart', JSON.stringify(storedCounts));
-
-  //   console.log("updatedCounts in update: ", JSON.stringify(storedCounts));
-  // };
-
 
   const handleIncrement = (product) => {
   console.log("In CountsById[", product.id, "] : ", product);
@@ -222,7 +197,7 @@ export default function ChooseShop() {
                   style={{
                     backgroundImage: product.image?.data?.attributes?.url
                       ? `url(${API_URL}${product.image.data.attributes.url})`
-                      : 'url(https://cdn.britannica.com/70/234870-050-D4D024BB/Orange-colored-cat-yawns-displaying-teeth.jpg)',
+                      : 'url(https://png.pngtree.com/png-vector/20221125/ourmid/pngtree-no-image-available-icon-flatvector-illustration-pic-design-profile-vector-png-image_40966566.jpg)',
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     width: "100%",
@@ -260,7 +235,10 @@ export default function ChooseShop() {
         {/* Display a message if no products match the search term */}
         {filteredProducts.length === 0 && <p className="text-center text-2xl mt-10">No products found</p>}
         {showModal &&
-          <PointsModal closeModal={() => setShowModal(false)} />
+          <PointsModal text="แต้มของท่านไม่เพียงพอ" closeModal={() => setShowModal(false)} />
+        }
+        {showModal2 &&
+          <PointsModal text="ขออภัย สินค้าในสต็อกไม่เพียงพอ" closeModal={() => setShowModal2(false)} />
         }
       </Container>
     </>
