@@ -35,6 +35,7 @@ export const getAllProductsByShopId = async (token: string, shopId: number): Pro
             publishedAt: item.attributes.publishedAt,
             numStock: item.attributes.numStock,
             image: item.attributes.image,
+            status: item.attributes.status,
             shop: {
                 id: item.attributes.shop.data.id,
                 name: item.attributes.shop.data.attributes.name,
