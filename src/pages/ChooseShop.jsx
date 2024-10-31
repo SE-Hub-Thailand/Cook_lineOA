@@ -188,7 +188,10 @@ export default function ChooseShop() {
         {filteredProducts.length > 0 && <p className="text-3xl text-center pt-10">{filteredProducts[0]?.shop?.name}</p>}
 
         {/* Display filtered products */}
-        {filteredProducts.map(product => (
+        {/* {filteredProducts.map(product => ( */}
+        {filteredProducts
+          .filter(product => product.status === "approved")
+          .map(product => (
           <div key={product.id}>
             <div className="w-full h-60 bg-white mt-10 rounded-s-md">
               <div className="flex justify-center">
