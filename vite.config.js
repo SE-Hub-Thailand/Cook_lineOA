@@ -11,6 +11,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    port: 5173, // กำหนดพอร์ตที่ต้องการ
     proxy: {
       '/api': {
         target: 'https://cookkeptback.sehub-thailand.com',
