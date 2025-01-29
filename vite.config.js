@@ -14,7 +14,7 @@ export default defineConfig({
     port: 5173, // กำหนดพอร์ตที่ต้องการ
     proxy: {
       '/api': {
-        target: 'https://cookkeptback.sehub-thailand.com',
+        target: 'https://cookkeptuser.sehub-thailand.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
