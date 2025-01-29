@@ -1,35 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../components/Header.jsx";
 import FileUpload from "../components/FileUpload.jsx";
-import { Checkbox, TextField } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormControl from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
-import { updateUser } from "../api/strapi/userApi"; // Import updateUser function
-import LoadingSpinner from "../components/LoadingSpinner.jsx";
-import WebcamCapture from "../components/WebcamCapture.jsx";
 import Alert from "../components/Alert.jsx";
-import { handlePhotoUpload, uploadImageFromBase64 } from "../api/strapi/uploadApi";
-import CameraCapture from "../components/CameraCapture.jsx";
+import {
+  Checkbox,
+  TextField,
+  createTheme,
+  ThemeProvider,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
+import data from "../components/data.json";
+import { updateUser } from "../api/strapi/userApi";
+import { handlePhotoUpload } from "../api/strapi/uploadApi";
+import LoadingSpinner from "../components/LoadingSpinner.jsx";
+// import { a } from "vitest/dist/chunks/suite.CcK46U-P.js";
 
 function UpdateUserProfile() {
-  const userId = localStorage.getItem('lineId');
-  // const token = import.meta.env.VITE_TOKEN_TEST;
-  const token = localStorage.getItem('token');
-  const API_URL = import.meta.env.VITE_API_URL;
-  const navigate = useNavigate(); // Initialize useNavigate for redirection
-  const [isFormValid, setIsFormValid] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [hasImage, setHasImage] = useState(false);  // สถานะว่ามีภาพหรือไม่
-  const [showModal, setShowModal] = useState(false);
-  const [fileChange, setFileChange] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL
+  const userId = localStorage.getItem("lineId");
+  const token = localStorage.getItem("token");
 
   const theme = createTheme({
     typography: {
@@ -37,283 +32,380 @@ function UpdateUserProfile() {
     },
   });
 
-    // Fetch user data and set the formData
-    useEffect(() => {
-      const fetchUser = async () => {
-        try {
-          setLoading(true);
-          // const userData = await getUser(userId, token);
-          const userData = JSON.parse(localStorage.getItem('user'));
-          setUser(userData);
-          setFormData({
-            username: userData.username || "",
-            fullName: userData.fullName || "",
-            telNumber: userData.telNumber || "",
-            gender: userData.gender || "",
-            address: userData.address || "",
-            cardID: userData.cardID || "",
-            photoImage: userData.photoImage || "", // Assuming the image is not fetched here
-            cardIdImage: userData.cardIdImage || "",
-          });
-          setLoading(false);
-        } catch (error) {
-          console.error("Error fetching users:", error);
-          setError(error.message);
-          setLoading(false);
-        }
-      };
-      fetchUser();
-    }, [userId, token]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [subDistricts, setSubDistricts] = useState([]);
+  const [user, setUser] = useState(null);
 
-  // Initial formData state is set with empty fields
+  const [address, setAddress] = useState({
+    houseNumber: "",
+    street: "",
+    subDistrict: "",
+    district: "",
+    province: "",
+    postalCode: "",
+  });
   const [formData, setFormData] = useState({
-    username: user?.username || "",
-		fullName: user?.fullName || "",
-    telNumber: user?.telNumber || "",
-    gender: user?.gender || "",
-    address: user?.address || "",
-    cardID: user?.cardID || "",
-    photoImage: user?.photoImage || "", // Assuming the image is not fetched here
-    cardIdImage: user?.cardIdImage || "",
+    username: "",
+    fullName: "",
+    telNumber: "",
+    gender: "",
+    photoImage: "",
     checkedOne: false,
   });
+  const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
-    const {
-      username,
-      fullName,
-      telNumber,
-      gender,
-      address,
-      cardID,
-      checkedOne,
-    } = formData;
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const userData = JSON.parse(localStorage.getItem("user"));
+        setUser(userData);
+        console.log("userData: ", userData);
+        console.log("userData url: ", API_URL + userData.photoImage.url);
 
+        const addressParts = userData.address.split(" ");
+        console.log("addressParts[0]: ", addressParts[0]);
+        console.log("addressParts[1]: ", addressParts[1]);
+        console.log("addressParts[2]: ", addressParts[2]);
+        console.log("addressParts[3]: ", addressParts[3]);
+        console.log("addressParts[4]: ", addressParts[4]);
+        console.log("addressParts[5]: ", addressParts[5]);
+        
+        setFormData({
+          username: userData.username || "",
+          fullName: userData.fullName || "",
+          telNumber: userData.telNumber || "",
+          gender: userData.gender || "",
+          photoImage: API_URL + userData.photoImage.url || "",
+          checkedOne: true, // Assume user already agreed previously
+        });
+        setAddress({
+          houseNumber: addressParts[0] || "",
+          street: addressParts[1] || "",
+          subDistrict: addressParts[2] || "",
+          district: addressParts[3] || "",
+          province: addressParts[4] || "",
+          postalCode: addressParts[5] || "",
+        });
+        console.log("address: ", address);
+        // const isProvinceValid = provinces.includes(address.province);
+        // const isDistrictValid = districts.includes(address.district);
+        // const isSubDistrictValid = subDistricts.includes(address.subDistrict);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, [userId, token]);
+
+  useEffect(() => {
     setIsFormValid(
-      username &&
-        fullName &&
-        telNumber &&
-        gender &&
-        address &&
-        cardID &&
-        // hasImage &&
-        checkedOne
+      formData.username &&
+        formData.fullName &&
+        formData.telNumber &&
+        formData.gender &&
+        // address.houseNumber &&
+        // address.province &&
+        // address.district &&
+        // address.subDistrict &&
+        formData.checkedOne
     );
-  }, [formData]);
+  }, [formData, address]);
 
-  // Function to handle file change from FileUpload component
-  const handleFileChange = (file) => {
-    console.log("file change: ", file);
-    setFileChange(true);
-    setFormData((prevData) => ({
-      ...prevData,
-      photoImage: file, // Store the file in formData
-    }));
-  };
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      const uniqueProvinces = [
+        ...new Set(
+          data
+            .filter((entry) => entry.provinceList && entry.provinceList[0])
+            .map((entry) => entry.provinceList[0].provinceName)
+        ),
+      ];
+      setProvinces(uniqueProvinces);
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { id, name, value, type, checked } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [id || name]: type === "checkbox" ? checked : value,
+    if (name in address) {
+      setAddress((prev) => ({ ...prev, [name]: value }));
+    } else {
+      setFormData((prev) => ({ ...prev, [id || name]: type === "checkbox" ? checked : value }));
+    }
+  };
+
+  const handleProvinceChange = (event) => {
+    const selectedProvince = event.target.value;
+    setAddress((prev) => ({
+      ...prev,
+      province: selectedProvince,
+      district: "",
+      subDistrict: "",
+      postalCode: "",
+    }));
+
+    const filteredDistricts = data
+      .filter(
+        (entry) =>
+          entry.provinceList &&
+          entry.provinceList[0]?.provinceName === selectedProvince &&
+          entry.districtList
+      )
+      .flatMap((entry) =>
+        entry.districtList.map((d) => d.districtName)
+      );
+    setDistricts([...new Set(filteredDistricts)]); // ลบข้อมูลซ้ำ
+  };
+
+  const handleDistrictChange = (event) => {
+    const selectedDistrict = event.target.value;
+    setAddress((prev) => ({
+      ...prev,
+      district: selectedDistrict,
+      subDistrict: "",
+      postalCode: "",
+    }));
+
+    const filteredSubDistricts = data
+      .filter(
+        (entry) =>
+          entry.districtList &&
+          entry.districtList.some((d) => d.districtName === selectedDistrict) &&
+          entry.subDistrictList
+      )
+      .flatMap((entry) =>
+        entry.subDistrictList.map((s) => s.subDistrictName)
+      );
+    setSubDistricts([...new Set(filteredSubDistricts)]); // ลบข้อมูลซ้ำ
+  };
+
+  const handleSubDistrictChange = (event) => {
+    const selectedSubDistrict = event.target.value;
+    const postal = data
+      .find(
+        (entry) =>
+          entry.subDistrictList &&
+          entry.subDistrictList.some((s) => s.subDistrictName === selectedSubDistrict)
+      )
+      ?.zipCode;
+
+    setAddress((prev) => ({
+      ...prev,
+      subDistrict: selectedSubDistrict,
+      postalCode: postal || "ไม่พบรหัสไปรษณีย์",
     }));
   };
 
+  const handleFileChange = (file) => {
+    setFormData((prev) => ({ ...prev, photoImage: file }));
+  };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    console.log("formData: ", formData);
-    // อัปโหลดรูปภาพก่อน ถ้ามีรูปภาพที่จะอัปโหลด
-    let imageId, cardId_id = 0;
-    if (fileChange && formData.photoImage) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isFormValid) return;
+
+    setLoading(true);
+    let imageId = null;
+    if (formData.photoImage) {
       const { url, id } = await handlePhotoUpload(formData.photoImage);
-      imageId = id;
-      // ใช้ URL ของรูปภาพและ ID ที่ได้จากการอัปโหลดใน formData หรืออื่น ๆ
       formData.photoImage = url;
-      console.log("Uploaded Image URL:", url);
-      console.log("Uploaded Image ID:", id);
-    }
-    if (hasImage) {
-      // const base64Image = localStorage.getItem('cardIdImage');
-      const base64Image = capturedImage;
-      console.log("base64Image: ", base64Image);
-      const cardIdImageObject = await uploadImageFromBase64(base64Image)
-      if (cardIdImageObject) {
-        cardId_id = cardIdImageObject.id;
-        formData.cardIdImage = cardIdImageObject.url;
-      }
+      imageId = id;
     }
 
-      const userData = {
-      username: formData.username ,
-      photoImage: imageId === 0 ? user?.photoImage : imageId,
-      cardIdImage: !hasImage ? user?.cardIdImage : cardId_id,
+    const userData = {
+      username: formData.username,
+      photoImage: imageId,
       fullName: formData.fullName,
       telNumber: formData.telNumber,
       gender: formData.gender,
-      address: formData.address,
-      cardID: formData.cardID,
+      // address: `${address.houseNumber} ${address.street} ${address.subDistrict} ${address.district} ${address.province} ${address.postalCode}`,
     };
-    console.log("userData before: ", userData);
 
-    const response = await updateUser(user?.id, userData, token);
-    console.log("response: ", response);
-    console.log("response tok: ", response.jwt);
-    // console.log("response ok: ", response.ok);
-    if (response) {
-      console.log("User updated successfully!");
-      setShowModal(true);
-    } else {
-      throw new Error('User update failed.');
+    try {
+      // const response = await updateUser(userId, userData, token);
+      const response = await updateUser(user?.id, userData, token);
+      if (response) {
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.error("User update failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // const handleImageCapture = (imageSrc) => {
-  //   console.log("imageSrc: ", imageSrc);
-  //   if (imageSrc) {
-  //     setHasImage(true);  // มีภาพอยู่
-  //     // setFormData((prevData) => ({
-  //     //   ...prevData,
-  //     //   cardIdImage: imageSrc,
-  //     // }));
-  //   } else {
-  //     setHasImage(false);  // ไม่มีภาพ
-  //   }
-  // };
-
-  // ฟังก์ชันที่เรียกเมื่อมีการถ่ายรูปหรืออัปโหลดรูปใหม่
-  const handleImageCaptured = (id, imageData) => {
-    if (imageData) {
-      localStorage.setItem(id, imageData);
-      console.log("id: ", id);
-      console.log("imageData: ", imageData);
-      setHasImage(true);
-      setCapturedImage(imageData);
-      console.log("imageData: ", imageData);
-    } else {
-        setHasImage(false);  // ไม่มีภาพ
-      }
-  };
-
-  if (loading) return <LoadingSpinner />; // Loading state
-  if (error) return <p>Error: {error}</p>; // Error state
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <>
-    { showModal &&
-      <>
+    <ThemeProvider theme={theme}>
+      {showModal && (
         <Alert
           title="User data updated successfully!"
           message={`Hi, ${formData.username}! Your information has been updated successfully.`}
           path="/home"
           status="success"
         />
-      </>
-      }
-    <ThemeProvider theme={theme}>
-      <Header />
-	  <FileUpload
-	  	//  photoImage={user?.photoImage?.url}
-	  	photoImage={user?.photoImage?.url ? `${API_URL}${user.photoImage.url}` : ""} // Pass photoImage from the user data
-        onFileChange={handleFileChange} // Pass handleFileChange function
-      />
+      )}
+
+      <FileUpload photoImage={formData.photoImage} onFileChange={handleFileChange} />
+
       <form onSubmit={handleSubmit}>
         <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-wrap -mx-2">
-            <div className="w-full md:w-1/2 px-2">
-              <TextField
-                id="username"
-                label="ชื่อผู้ใช้"
-                variant="outlined"
-                className="w-full bg-white"
-                required
-                value={formData.username}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="w-full md:w-1/2 px-2 mt-4">
-              <TextField
-                id="fullName"
-                label="ชื่อ-นามสกุล"
-                variant="outlined"
-                className="w-full bg-white"
-                required
-                value={formData.fullName}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="w-full md:w-1/2 px-2 mt-4">
-              <TextField
-                id="telNumber"
-                label="เบอร์โทร"
-                variant="outlined"
-                className="w-full bg-white"
-                required
-                value={formData.telNumber}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="w-full px-2 mt-4">
-              <FormControl>
-                <FormLabel>เพศ</FormLabel>
-                <RadioGroup
-                  row
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                >
-                  <FormControlLabel
-                    value="Male"
-                    control={<Radio />}
-                    label="ชาย"
-                  />
-                  <FormControlLabel
-                    value="Female"
-                    control={<Radio />}
-                    label="หญิง"
-                  />
-                </RadioGroup>
-              </FormControl>
-            </div>
-            <div className="w-full px-2 mt-4">
-              <TextField
-                id="address"
-                label="ที่อยู่"
-                placeholder="ที่อยู่"
-                multiline
-                rows={4}
-                className="w-full bg-white"
-                required
-                value={formData.address}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="w-full px-2 mt-4">
-              <TextField
-                id="cardID"
-                label="หมายเลขบัตรประจำตัวประชาชน"
-                variant="outlined"
-                className="w-full bg-white"
-                required
-                value={formData.cardID}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="w-full px-2 mt-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                ถ่ายรูปตนเองพร้อมถือบัตรประจำตัวประชาชน
-              </label>
-              {/* <WebcamCapture onCapture={handleImageCapture} /> */}
-              <CameraCapture
-                onImageCaptured={handleImageCaptured}
-                initialImage={user?.cardIdImage?.url ? `${API_URL}${user.cardIdImage.url}` : ""} // ใส่ URL ของภาพหรือ Data URL ที่ต้องการ
-                id="cardIdImage"
-              />
-            </div>
+          <div className="w-full px-2 mt-4">
+            <TextField
+              id="username"
+              label="ชื่อผู้ใช้"
+              variant="outlined"
+              className="w-full bg-white"
+              required
+              value={formData.username}
+              onChange={handleInputChange}
+            />
           </div>
-        </div>
-        <div className="container mx-auto px-4 mt-10 mb-5">
-          <Checkbox
+
+          <div className="w-full px-2 mt-4">
+            <TextField
+              id="fullName"
+              label="ชื่อ-นามสกุล"
+              variant="outlined"
+              className="w-full bg-white"
+              required
+              value={formData.fullName}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="w-full px-2 mt-4">
+            <TextField
+              id="telNumber"
+              label="เบอร์โทร"
+              variant="outlined"
+              className="w-full bg-white"
+              required
+              value={formData.telNumber}
+              onChange={handleInputChange}
+              inputProps={{
+                maxLength: 10,
+                pattern: "[0-9]*",
+                inputMode: "numeric",
+              }}
+            />
+          </div>
+
+          <div className="w-full px-2 mt-4">
+            <FormControl className="w-full mt-4">
+              <FormLabel>เพศ*</FormLabel>
+              <RadioGroup
+                row
+                name="gender"
+                value={formData.gender}
+                onChange={handleInputChange}
+              >
+                <FormControlLabel value="Male" control={<Radio />} label="ชาย" />
+                <FormControlLabel value="Female" control={<Radio />} label="หญิง" />
+              </RadioGroup>
+            </FormControl>
+          </div>
+
+          {/* <div className="w-full px-2 mt-4">
+            <TextField
+              label="บ้านเลขที่"
+              name="houseNumber"
+              className="w-full bg-white mt-4"
+              value={address.houseNumber}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="w-full px-2 mt-4">
+            <TextField
+              label="ถนน"
+              name="street"
+              className="w-full bg-white mt-4"
+              value={address.street}
+              onChange={handleInputChange}
+              // error={errors.street}
+            />
+          </div>
+
+          <div className="w-full px-2 mt-4">
+            <FormControl className="w-full bg-white mt-4">
+              <InputLabel>จังหวัด</InputLabel>
+              <Select
+                value={address.province}
+                onChange={handleProvinceChange}
+              >
+                {provinces.map((province) => (
+                  <MenuItem key={province} value={province}>
+                    {province}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+
+          <div className="w-full px-2 mt-4">
+            {address.province && (
+              <FormControl className="w-full bg-white mt-4">
+                <InputLabel>อำเภอ</InputLabel>
+                <Select
+                  value={address.district}
+                  onChange={handleDistrictChange}
+                >
+                  {districts.map((district) => (
+                    <MenuItem key={district} value={district}>
+                      {district}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </div>
+
+          <div className="w-full px-2 mt-4">
+            {address.district && (
+              <FormControl className="w-full bg-white mt-4">
+                <InputLabel>ตำบล</InputLabel>
+                <Select
+                  value={address.subDistrict}
+                  onChange={handleSubDistrictChange}
+                >
+                  {subDistricts.map((subDistrict) => (
+                    <MenuItem key={subDistrict} value={subDistrict}>
+                      {subDistrict}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </div>
+
+          <div className="w-full px-2 mt-4">
+            {address.subDistrict && (
+              <div className="mt-4">
+                <strong>รหัสไปรษณีย์:</strong> {address.postalCode}
+              </div>
+            )}
+          </div> */}
+
+          <div className="w-full px-2 mt-4 bg-gray-200 rounded-lg p-4">
+            <p className="text-lg font-bold">
+              ที่อยู่{" "}
+            </p>
+            <p className="text-lg">
+              {address?.houseNumber || ""} {address?.street || ""}{" "}
+              {address?.subDistrict || ""} {address?.district || ""}{" "}
+              {address?.province || ""} {address?.postalCode || ""}
+            </p>
+          </div>
+
+          {/* <Checkbox
             id="checkedOne"
             checked={formData.checkedOne}
             onChange={handleInputChange}
@@ -327,24 +419,23 @@ function UpdateUserProfile() {
               กุ๊กมีความมุ่งมั่นที่จะให้ความคุ้มครองและดำเนินการด้วยความรับผิดชอบต่อการเก็บรวบรวม
               ใช้ เปิดเผย และโอนข้อมูลของคุณ กุ๊กจึงขอความยินยอมจากคุณ
             </span>
-          </span>
+          </span> */}
         </div>
         <div className="container mx-auto px-4">
           <button
             type="submit"
-            disabled={!isFormValid || showModal}
+            disabled={!isFormValid || loading || showModal}
             className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white font-bold transition duration-300 ${
               isFormValid && !showModal
                 ? "bg-green-500 hover:bg-green-600 active:bg-green-700"
                 : "bg-slate-300 cursor-not-allowed"
-            } ${isFormValid && !showModal ? "cursor-pointer" : ""}`}
+            }`}
           >
             บันทึกข้อมูล
           </button>
         </div>
       </form>
     </ThemeProvider>
-    </>
   );
 }
 

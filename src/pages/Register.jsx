@@ -1,356 +1,394 @@
-import React, { useState, useEffect} from "react";
-import { useNavigate, useParams } from "react-router-dom";
-// import Header from "../components/Header.jsx";
+import React, { useState, useEffect } from "react";
 import FileUpload from "../components/FileUpload.jsx";
-import { Checkbox, TextField } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormControl from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
-// import WebcamCapture from "../components/WebcamCapture.jsx";
-import { createUser } from "../api/strapi/userApi"; // Import createUser function
 import Alert from "../components/Alert.jsx";
-import CameraCapture from "../components/CameraCapture.jsx";
-// import { uploadImage } from "../api/strapi/uploadApi"; // Import uploadImage function
+import {
+  Checkbox,
+  TextField,
+  createTheme,
+  ThemeProvider,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
+import data from "../components/data.json";
+import { createUser } from "../api/strapi/userApi";
+import { handlePhotoUpload } from "../api/strapi/uploadApi";
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
-import { handlePhotoUpload, uploadImageFromBase64 } from "../api/strapi/uploadApi";
 
 function Register() {
-  const displayName = localStorage.getItem('displayName');
-  const pictureUrl = localStorage.getItem('pictureUrl');
-  console.log("displayName in Register: ", displayName);
-  console.log("pictureUrl in Register: ", pictureUrl);
-  // console.log("token in Register: ", token);
-  const userId = localStorage.getItem('lineId');
+  const displayName = localStorage.getItem("displayName");
+  const pictureUrl = localStorage.getItem("pictureUrl");
+  const userId = localStorage.getItem("lineId");
+
   const theme = createTheme({
     typography: {
       fontFamily: "Sarabun",
     },
   });
-  const navigate = useNavigate(); // Initialize useNavigate for redirection
+
+  // const navigate = useNavigate();
+
   const [isFormValid, setIsFormValid] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [hasImage, setHasImage] = useState(false);  // สถานะว่ามีภาพหรือไม่
-  const [capturedImage, setCapturedImage] = useState(null);
-
-  // Initial formData state is set with empty fields
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [subDistricts, setSubDistricts] = useState([]);
+  const [address, setAddress] = useState({
+    houseNumber: "",
+    street: "",
+    subDistrict: "",
+    district: "",
+    province: "",
+    postalCode: "",
+  });
+  const [errors, setErrors] = useState({
+    houseNumber: false,
+    province: false,
+    district: false,
+    subDistrict: false,
+  });
   const [formData, setFormData] = useState({
-    username: displayName,
+    username: displayName || "",
     password: "",
     fullName: "",
     telNumber: "",
     gender: "",
     address: "",
-    cardID: "",
-    cardIdImage: "",
-    photoImage: pictureUrl? pictureUrl : "",
+    photoImage: pictureUrl || "",
     checkedOne: false,
   });
 
   useEffect(() => {
-    const {
-      username,
-      fullName,
-      telNumber,
-      gender,
-      address,
-      cardID,
-      // cardIdImage,
-      checkedOne,
-    } = formData;
-
     setIsFormValid(
-      username &&
-        fullName &&
-        telNumber &&
-        gender &&
-        address &&
-        cardID &&
-        // hasImage &&
-        checkedOne
+      formData.username &&
+        formData.fullName &&
+        formData.telNumber &&
+        formData.gender &&
+        address.houseNumber &&
+        address.province &&
+        address.district &&
+        address.subDistrict &&
+        formData.checkedOne
     );
-  }, [formData]);
+  }, [formData, address]);
 
-  // Function to handle file change from FileUpload component
-  const handleFileChange = (file) => {
-    console.log("file change: ", file);
-    setFormData((prevData) => ({
-      ...prevData,
-      photoImage: file, // Store the file in formData
-    }));
-  };
-
-  // const handleImageCapture = (imageSrc) => {
-  //   console.log("imageSrc: ", imageSrc);
-  //   if (imageSrc) {
-  //     setHasImage(true);  // มีภาพอยู่
-  //     // setFormData((prevData) => ({
-  //     //   ...prevData,
-  //     //   cardIdImage: imageSrc,
-  //     // }));
-  //   } else {
-  //     setHasImage(false);  // ไม่มีภาพ
-  //   }
-  // };
-// ]
+  // โหลดข้อมูลจังหวัด
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      const uniqueProvinces = [
+        ...new Set(
+          data
+            .filter((entry) => entry.provinceList && entry.provinceList[0])
+            .map((entry) => entry.provinceList[0].provinceName)
+        ),
+      ];
+      setProvinces(uniqueProvinces);
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { id, name, value, type, checked } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [id || name]: type === "checkbox" ? checked : value,
+    if (name in address) {
+      setAddress((prev) => ({ ...prev, [name]: value }));
+      setErrors((prev) => ({ ...prev, [name]: !value }));
+    } else {
+      setFormData((prev) => ({ ...prev, [id || name]: type === "checkbox" ? checked : value }));
+    }
+  };
+
+
+  const handleProvinceChange = (event) => {
+    const selectedProvince = event.target.value;
+    setAddress((prev) => ({
+      ...prev,
+      province: selectedProvince,
+      district: "",
+      subDistrict: "",
+      postalCode: "",
+    }));
+
+    const filteredDistricts = data
+      .filter(
+        (entry) =>
+          entry.provinceList &&
+          entry.provinceList[0]?.provinceName === selectedProvince &&
+          entry.districtList
+      )
+      .flatMap((entry) =>
+        entry.districtList.map((d) => d.districtName)
+      );
+    setDistricts([...new Set(filteredDistricts)]); // ลบข้อมูลซ้ำ
+  };
+
+  const handleDistrictChange = (event) => {
+    const selectedDistrict = event.target.value;
+    setAddress((prev) => ({
+      ...prev,
+      district: selectedDistrict,
+      subDistrict: "",
+      postalCode: "",
+    }));
+
+    const filteredSubDistricts = data
+      .filter(
+        (entry) =>
+          entry.districtList &&
+          entry.districtList.some((d) => d.districtName === selectedDistrict) &&
+          entry.subDistrictList
+      )
+      .flatMap((entry) =>
+        entry.subDistrictList.map((s) => s.subDistrictName)
+      );
+    setSubDistricts([...new Set(filteredSubDistricts)]); // ลบข้อมูลซ้ำ
+  };
+
+  const handleSubDistrictChange = (event) => {
+    const selectedSubDistrict = event.target.value;
+    const postal = data
+      .find(
+        (entry) =>
+          entry.subDistrictList &&
+          entry.subDistrictList.some((s) => s.subDistrictName === selectedSubDistrict)
+      )
+      ?.zipCode;
+
+    setAddress((prev) => ({
+      ...prev,
+      subDistrict: selectedSubDistrict,
+      postalCode: postal || "ไม่พบรหัสไปรษณีย์",
     }));
   };
 
+  const handleFileChange = (file) => {
+    setFormData((prev) => ({ ...prev, photoImage: file }));
+  };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    console.log("formData: ", formData);
-    // อัปโหลดรูปภาพก่อน ถ้ามีรูปภาพที่จะอัปโหลด
-    let imageId, cardId_id = 0;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!isFormValid) return;
+
+    setLoading(true);
+
+    let imageId = null;
     if (formData.photoImage) {
       const { url, id } = await handlePhotoUpload(formData.photoImage);
-      imageId = id;
-      // ใช้ URL ของรูปภาพและ ID ที่ได้จากการอัปโหลดใน formData หรืออื่น ๆ
       formData.photoImage = url;
-      console.log("Uploaded Image URL:", url);
-      console.log("Uploaded Image ID:", id);
-    }
-    const base64Image = localStorage.getItem('cardIdImage');
-    const cardIdImageObject = await uploadImageFromBase64(base64Image)
-    if (cardIdImageObject) {
-      cardId_id = cardIdImageObject.id;
-      formData.cardIdImage = cardIdImageObject.url;
+      imageId = id;
     }
 
-      const userData = {
-      username: formData.username || "cook" + userId ,
-      email: "cook" + userId + "@cook.com", // Assuming email is the same as username in this example
+    const userData = {
+      username: formData.username || `cook${userId}`,
+      email: `cook${userId}@cook.com`,
       password: "cookcook",
       lineId: userId,
       userType: "customer",
-      photoImage: imageId === 0 ? null : imageId,
-      cardIdImage: cardId_id === 0 ? null : cardId_id,
+      photoImage: imageId,
       fullName: formData.fullName,
       telNumber: formData.telNumber,
       gender: formData.gender,
-      address: formData.address,
-      cardID: formData.cardID,
+      address: `${address.houseNumber} ${address.street} ${address.subDistrict} ${address.district} ${address.province} ${address.postalCode}`,
       point: 0,
     };
-    console.log("userData before: ", userData);
 
-    const response = await createUser(userData);
-    console.log("response: ", response);
-    console.log("response tok: ", response.jwt);
-    // console.log("response ok: ", response.ok);
-    if (response.jwt !== undefined) {
-      console.log("User registered successfully!");
-      setShowModal(true);
-      const token = response.jwt;
-      localStorage.setItem('token', token);
-    } else {
-      throw new Error('User registration failed.');
+    try {
+      const response = await createUser(userData);
+      if (response.jwt) {
+        localStorage.setItem("token", response.jwt);
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.error("User registration failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleImageCaptured = (id, imageData) => {
-    if (imageData) {
-      localStorage.setItem(id, imageData);
-      console.log("id: ", id);
-      console.log("imageData: ", imageData);
-      setHasImage(true);
-      setCapturedImage(imageData);
-      console.log("imageData: ", imageData);
-    } else {
-        setHasImage(false);  // ไม่มีภาพ
-      }
-  };
-
-  if (loading) return <LoadingSpinner />; // Loading state
-  if (error) return <p>Error: {error}</p>; // Error state
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <>
-      { showModal &&
-      <>
+    <ThemeProvider theme={theme}>
+      {showModal && (
         <Alert
           title="User registered successfully!"
-          message={`Welcome, ${formData.username}! We’re so happy to have you on Cook Website.`}
+          message={`Welcome, ${formData.username}! We’re so happy to have you.`}
           path="/home"
           status="success"
         />
+      )}
 
-      </>
-      }
-    <ThemeProvider theme={theme}>
       <FileUpload
-        photoImage={formData.photoImage} // Pass the selected photo to FileUpload component
-        onFileChange={handleFileChange} // Pass handleFileChange function
+        photoImage={formData.photoImage}
+        onFileChange={handleFileChange}
       />
+
       <form onSubmit={handleSubmit}>
         <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-wrap -mx-2">
-            <div className="w-full md:w-1/2 px-2">
-            <TextField
-              id="username"
-              label="ชื่อผู้ใช้"
-              variant="outlined"
-              className="w-full bg-white"
-              required
-              value={formData.username}
-              onChange={handleInputChange}
-              // inputProps={{
-              //   pattern: "[A-Za-z0-9]*", // อนุญาตเฉพาะตัวอักษรและตัวเลข
-              //   inputMode: "text" // แสดงคีย์บอร์ดสำหรับการพิมพ์ตัวอักษรและตัวเลข
-              // }}
-              // error={formData.username && !/^[A-Za-z0-9]+$/.test(formData.username)}
-              // helperText={
-              //   formData.username && !/^[A-Za-z0-9]+$/.test(formData.username)
-              //     ? "กรุณากรอกเฉพาะตัวอักษรและตัวเลขเท่านั้น"
-              //     : ""
-              // }
+        <div className="w-full px-2 mt-4">
+          <TextField
+            id="username"
+            label="ชื่อผู้ใช้"
+            variant="outlined"
+            className="w-full bg-white"
+            required
+            value={formData.username}
+            onChange={handleInputChange}
             />
-            </div>
-            <div className="w-full md:w-1/2 px-2 mt-4">
-            <TextField
-              id="fullName"
-              label="ชื่อ-นามสกุล"
-              variant="outlined"
-              className="w-full bg-white"
-              required
-              value={formData.fullName}
-              onChange={handleInputChange}
-              // inputProps={{
-              //   pattern: "[A-Za-z0-9 ]*", // อนุญาตเฉพาะตัวอักษร ตัวเลข และ space
-              //   inputMode: "text" // แสดงคีย์บอร์ดสำหรับการพิมพ์ข้อความ
-              // }}
-              // error={formData.fullName && !/^[A-Za-z0-9 ]+$/.test(formData.fullName)}
-              // helperText={ formData.fullName && !/^[A-Za-z0-9 ]+$/.test(formData.fullName) ? "กรุณากรอกเฉพาะตัวอักษร ตัวเลข และช่องว่างเท่านั้น" : "" }
-            />
-            </div>
-            <div className="w-full md:w-1/2 px-2 mt-4">
-            <TextField
-                id="telNumber"
-                label="เบอร์โทร"
-                variant="outlined"
-                className="w-full bg-white"
-                required
-                value={formData.telNumber}
-                onChange={handleInputChange}
-                inputProps={{
-                  maxLength: 10, // จำกัดจำนวนหลักให้ไม่เกิน 10
-                  pattern: "[0-9]*", // อนุญาตเฉพาะตัวเลข
-                  inputMode: "numeric", // แสดงคีย์บอร์ดตัวเลขบนอุปกรณ์มือถือ
-                }}
-                error={
-                  formData.telNumber &&
-                  (formData.telNumber.length !== 10 || !/^0[0-9]{9}$/.test(formData.telNumber))
-                }
-                helperText={
-                  formData.telNumber && !/^[0-9]+$/.test(formData.telNumber)
-                    ? "กรุณากรอกเฉพาะตัวเลขเท่านั้น"
-                    : formData.telNumber && formData.telNumber.length !== 10
-                    ? "เบอร์โทรศัพท์ต้องมี 10 หลัก"
-                    : formData.telNumber && !/^0[0-9]{9}$/.test(formData.telNumber)
-                    ? "เบอร์โทรศัพท์ต้องเริ่มต้นด้วยเลข 0"
-                    : ""
-                }
-              />
-            </div>
-            <div className="w-full px-2 mt-4">
-              <FormControl>
-                <FormLabel>เพศ*</FormLabel>
-                <RadioGroup
-                  row
-                  name="gender"
-                  required
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                >
-                  <FormControlLabel
-                    value="Male"
-                    control={<Radio />}
-                    label="ชาย"
-                  />
-                  <FormControlLabel
-                    value="Female"
-                    control={<Radio />}
-                    label="หญิง"
-                  />
-                </RadioGroup>
-              </FormControl>
-            </div>
-            <div className="w-full px-2 mt-4">
-              <TextField
-                id="address"
-                label="ที่อยู่"
-                placeholder="ที่อยู่"
-                multiline
-                rows={4}
-                className="w-full bg-white"
-                required
-                value={formData.address}
-                onChange={handleInputChange}
-                // inputProps={{
-                //   pattern: "^[A-Za-z0-9.,\\-\\s]*$", // อนุญาตเฉพาะตัวอักษร ตัวเลข ช่องว่าง จุด จุลภาค และขีดกลาง
-                // }}
-                // error={
-                //   formData.address && !/^[A-Za-z0-9.,\-\s]*$/.test(formData.address)
-                // }
-                // helperText={
-                //   formData.address && !/^[A-Za-z0-9.,\-\s]*$/.test(formData.address)
-                //     ? "ที่อยู่ต้องไม่มีอักขระพิเศษอื่น ๆ"
-                //     : ""
-                // }
-              />
-            </div>
-            <div className="w-full px-2 mt-4">
-              <TextField
-                id="cardID"
-                label="หมายเลขบัตรประจำตัวประชาชน"
-                variant="outlined"
-                className="w-full bg-white"
-                required
-                value={formData.cardID}
-                onChange={handleInputChange}
-                inputProps={{
-                  maxLength: 13, // จำกัดจำนวนหลักให้ไม่เกิน 13
-                  pattern: "[0-9]*", // อนุญาตเฉพาะตัวเลข
-                  inputMode: "numeric", // แสดงคีย์บอร์ดตัวเลขบนอุปกรณ์มือถือ
-                  }}
-                  error={
-                    formData.cardID &&
-                    (formData.cardID.length !== 13 || !/^[0-9]+$/.test(formData.cardID))
-                  }
-                  helperText={
-                    formData.cardID && !/^[0-9]+$/.test(formData.cardID)
-                    ? "กรุณากรอกเฉพาะตัวเลขเท่านั้น"
-                    : formData.cardID && formData.cardID.length !== 13
-                    ? "หมายเลขบัตรประจำตัวต้องมี 13 หลัก"
-                    : ""
-                  }
-              />
-            </div>
-            <div className="w-full px-2 mt-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-                ถ่ายรูปตนเองพร้อมถือบัตรประจำตัวประชาชน<span className="text-red-500">*</span>
-              </label>
-              {/* <WebcamCapture onCapture={handleImageCapture} /> */}
-              <CameraCapture
-                onImageCaptured={handleImageCaptured}
-                initialImage="" // ใส่ URL ของภาพหรือ Data URL ที่ต้องการ
-                id="cardIdImage"
-              />
-            </div>
-          </div>
         </div>
-        <div className="container mx-auto px-4 mt-10 mb-5">
-          <Checkbox
+
+        <div className="w-full px-2 mt-4">
+          <TextField
+            id="fullName"
+            label="ชื่อ-นามสกุล"
+            variant="outlined"
+            className="w-full bg-white mt-4"
+            required
+            value={formData.fullName}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        <div className="w-full px-2 mt-4">
+          <TextField
+            id="telNumber"
+            label="เบอร์โทร"
+            variant="outlined"
+            className="w-full bg-white mt-4"
+            required
+            value={formData.telNumber}
+            onChange={handleInputChange}
+            inputProps={{
+              maxLength: 10,
+              pattern: "[0-9]*",
+              inputMode: "numeric",
+            }}
+            />
+        </div>
+
+        <div className="w-full px-2 mt-4">
+          <FormControl className="w-full mt-4">
+            <FormLabel>เพศ*</FormLabel>
+            <RadioGroup
+              row
+              name="gender"
+              value={formData.gender}
+              onChange={handleInputChange}
+              >
+              <FormControlLabel value="Male" control={<Radio />} label="ชาย" />
+              <FormControlLabel value="Female" control={<Radio />} label="หญิง" />
+            </RadioGroup>
+          </FormControl>
+        </div>
+
+        <div className="w-full px-2 mt-4">
+          <TextField
+            label="บ้านเลขที่"
+            name="houseNumber"
+            className="w-full bg-white mt-4"
+            value={address.houseNumber}
+            onChange={handleInputChange}
+            error={errors.houseNumber}
+          />
+        </div>
+
+        <div className="w-full px-2 mt-4">
+          <TextField
+            label="ถนน"
+            name="street"
+            className="w-full bg-white mt-4"
+            value={address.street}
+            onChange={handleInputChange}
+            error={errors.street}
+          />
+        </div>
+
+        <div className="w-full px-2 mt-4">
+          <FormControl className="w-full bg-white mt-4">
+            <InputLabel>จังหวัด</InputLabel>
+            <Select
+              value={address.province}
+              onChange={handleProvinceChange}
+              error={errors.province}
+            >
+              {provinces.map((province) => (
+                <MenuItem key={province} value={province}>
+                  {province}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </div>
+
+        <div className="w-full px-2 mt-4">
+          {address.province && (
+            <FormControl className="w-full bg-white mt-4">
+              <InputLabel>อำเภอ</InputLabel>
+              <Select
+                value={address.district}
+                onChange={handleDistrictChange}
+                error={errors.district}
+              >
+                {districts.map((district) => (
+                  <MenuItem key={district} value={district}>
+                    {district}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </div>
+
+        <div className="w-full px-2 mt-4">
+          {address.district && (
+            <FormControl className="w-full bg-white mt-4">
+              <InputLabel>ตำบล</InputLabel>
+              <Select
+                value={address.subDistrict}
+                onChange={handleSubDistrictChange}
+                error={errors.subDistrict}
+              >
+                {subDistricts.map((subDistrict) => (
+                  <MenuItem key={subDistrict} value={subDistrict}>
+                    {subDistrict}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </div>
+
+        <div className="w-full px-2 mt-4">
+          {address.subDistrict && (
+            <div className="mt-4">
+              <strong>รหัสไปรษณีย์:</strong> {address.postalCode}
+            </div>
+          )}
+        </div>
+
+          {/* <Checkbox
+            id="checkedOne"
+            checked={formData.checkedOne}
+            onChange={handleInputChange}
+            required
+          />
+          <span>
+            ยินยอมให้จัดเก็บข้อมูลส่วนตัว
+          </span>
+        </div>
+
+        <Button
+          type="submit"
+          disabled={!isFormValid || loading || showModal}
+          className="w-full bg-green-500 mt-4"
+        >
+          ลงทะเบียน
+        </Button> */}
+                  <Checkbox
             id="checkedOne"
             checked={formData.checkedOne}
             onChange={handleInputChange}
@@ -369,7 +407,7 @@ function Register() {
         <div className="container mx-auto px-4">
         <button
           type="submit"
-          disabled={!isFormValid || !hasImage || showModal}
+          disabled={!isFormValid || loading || showModal}
           className={`w-full h-12 mb-10 flex justify-center rounded-xl items-center text-white font-bold transition duration-300 ${
             isFormValid && !showModal
               ? "bg-green-500 hover:bg-green-600 active:bg-green-700"
@@ -380,8 +418,8 @@ function Register() {
         </button>
         </div>
       </form>
+      
     </ThemeProvider>
-    </>
   );
 }
 

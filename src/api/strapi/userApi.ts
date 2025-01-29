@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:1400';  // Fallback to default if env variable not set
 import { User } from './types';
-export const updateUser = async (userId: number, userData: Record<string, any>, token: string) => {
+export const updateUser = async (userId: string, userData: Record<string, any>, token: string) => {
     try {
         const url = `${API_URL}/api/users/${userId}`;  // Adjust the endpoint as per your API structure
 
@@ -34,7 +34,7 @@ export const getUser = async (userId: string, token: string): Promise<User> => {
 
     try {
         // Use query parameters to filter by lineId if necessary
-        const url = `${API_URL}/api/users?populate[photoImage]=true&populate[cardIdImage]=true&filters[lineId][$eq]=${userId}`;
+        const url = `${API_URL}/api/users?populate[photoImage]=true&filters[lineId][$eq]=${userId}`;
         // const url = `${API_URL}/api/users`;
 
 
@@ -74,12 +74,12 @@ export const getUser = async (userId: string, token: string): Promise<User> => {
             lineId: data[0].lineId,
             gender: data[0].gender,
             address: data[0].address,
-            cardID: data[0].cardID,
+            // cardID: data[0].cardID,
             telNumber: data[0].telNumber,
             userType: data[0].userType,
             point: data[0].point,
             photoImage: data[0].photoImage,
-            cardIdImage: data[0].cardIdImage,
+            // cardIdImage: data[0].cardIdImage,
         };
 
         // console.log('JSON.stringify(user): ', JSON.stringify(user)); // Log users to check if the mapping worked correctly

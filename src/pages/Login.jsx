@@ -21,6 +21,7 @@ const Login = () => {
         console.log("lineId", lineId);
         console.log("profile lineID", profile.displayName);
         console.log("profile lineID", profile.lineId);
+        localStorage.setItem('lineId', lineId);
         // Set display name from profile
         setDisplayName(profile.displayName + "xxxx");
         const response = await loginWithLineId(lineId);
@@ -53,26 +54,26 @@ const Login = () => {
 
 
   // Handle fetching redeem details (you can replace itemId dynamically)
-  const fetchRedeemDetails = async (itemId) => {
-    const token = localStorage.getItem('token');
-    try {
-      const response = await axios.get(`https://cookb.opencodelab.asia/api/redeems/${itemId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  // const fetchRedeemDetails = async (itemId) => {
+  //   const token = localStorage.getItem('token');
+  //   try {
+  //     const response = await axios.get(`https://cookb.opencodelab.asia/api/redeems/${itemId}`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
 
-      // Process successful retrieval
-      console.log('Item claim:', response.data);
-    } catch (err) {
-      console.error('Error fetching redeem details:', err);
-      setErrorMessage('Failed to fetch the redeem details.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     // Process successful retrieval
+  //     console.log('Item claim:', response.data);
+  //   } catch (err) {
+  //     console.error('Error fetching redeem details:', err);
+  //     setErrorMessage('Failed to fetch the redeem details.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Render the login/logout buttons and display name
   const showDisplayName = () => {
-    if (error) return <p>Something went wrong: {error.message}</p>;
+    // if (error) return <p>Something went wrong: {error.message}</p>;
     if (!isReady) return <LoadingSpinner />;
 
     if (!isLoggedIn) {

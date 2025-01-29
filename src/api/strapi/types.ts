@@ -39,7 +39,7 @@ export interface User {
     fullName: string;
     gender: string;
     address: string;
-    cardID: string;
+    // cardID: string;
     photoImage: File;
     telNumber: string;
     point: number;
